@@ -1,3 +1,7 @@
+# Large data
+calculations/
+Set(08,56).bin
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
