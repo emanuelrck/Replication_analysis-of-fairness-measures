@@ -42,5 +42,3 @@ The project is bases on [this original repository](https://github.com/Rineol/fai
 - `data` directory contains the *sample* dataset itself
 
 - `resourseConsumption` is experiments on time and memory complexity for generating datasets
-
-- 
