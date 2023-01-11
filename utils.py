@@ -8,6 +8,11 @@ def getGroupRatios(df: pd.DataFrame):
 def getImbalanceRatios(df: pd.DataFrame):
     return (df.i_tp + df.i_fn + df.j_tp + df.j_fn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn + df.j_tp + df.j_fp + df.j_tn + df.j_fn)
 
+# Stereotipical bias
+def getStereotipicalBias(df: pd.DataFrame):
+    return (df.i_tp + df.i_fp + df.i_tn + df.i_fn) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn) - \
+            (df.j_tp + df.j_fp + df.j_tn + df.j_fn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
+
 # True Positive Rate 
 def getTPR_i(df: pd.DataFrame):
     return df.i_tp / (df.i_tp + df.i_fn)
