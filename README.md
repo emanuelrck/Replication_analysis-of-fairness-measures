@@ -5,7 +5,7 @@
 
 ## Reference
 
-The project is bases on [this original repository](https://github.com/Rineol/fairness-measures). Our synthetic dataset was generated using the code from there, hence, the generator is not present here.
+The project's synthetic dataset was generated using the code from [this repository](https://github.com/Rineol/fairness-measures). Hence, the generator is not present here.
 
 ## The goal
 
