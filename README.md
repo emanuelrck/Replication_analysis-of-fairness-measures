@@ -3,6 +3,8 @@
 ![Test](https://github.com/alessandro1802/analysis-of-fairness-measures/actions/workflows/test.yml/badge.svg)
 [![Python](https://shields.io/badge/python-v3.11-blue)](https://www.python.org/downloads/)
 
+## [Paper](https://github.com/alessandro1802/analysis-of-fairness-measures/tree/main/paper)
+
 ## Reference
 
 The project's synthetic dataset was generated using the code from [this repository](https://github.com/Rineol/fairness-measures). Hence, the generator is not present here.
