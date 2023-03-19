@@ -36,10 +36,10 @@ The project's synthetic dataset was generated using the code from [this reposito
 - `plotting` is code for getting plots out of calculations
 
 - `plots` directory contains 2 sub-directories:
-  
-  1. `n24` are *sample* plots
-  
-  2. `n56` are *main* plots
+
+    1. `n24` are *sample* plots
+
+    2. `n56` are *main* plots
 
 - `data` directory contains the *sample* dataset itself
 
