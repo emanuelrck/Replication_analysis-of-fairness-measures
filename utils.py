@@ -18,7 +18,7 @@ __all__ = [
     'get_equal_opp_diff',
     'get_pred_equality_ratio',
     'get_pred_equality_diff',
-    'get_pred_parity_ratio',
+    'get_pos_pred_parity_ratio',
     'get_pos_pred_parity_diff',
     'get_neg_pred_parity_ratio',
     'get_neg_pred_parity_diff',
@@ -128,7 +128,8 @@ def get_pred_equality_diff(j_fpr, i_fpr):
 
 
 # Positive Predictive Parity Ratio
-def get_pred_parity_ratio(j_ppv, i_ppv):
+# renamed from get_pred_parity_ratio
+def get_pos_pred_parity_ratio(j_ppv, i_ppv):
     return j_ppv / i_ppv
 
 
