@@ -44,3 +44,11 @@ The project's synthetic dataset was generated using the code from [this reposito
 - `data` directory contains the *sample* dataset itself
 
 - `resourseConsumption` is experiments on time and memory complexity for generating datasets
+
+## Result files
+
+id | value
+---|---
+... | ...
+
+The rows are synchronised between files with the same data size, so they can be concatenated along the columns.
