@@ -59,7 +59,6 @@ def calculate_ppf_diff(df, metrics, ratio_type, epsilon=0):
         compute_diff_prob = lambda df: np.sum(np.abs(df['diff']) < epsilon) / len(df)
 
     for metric_file, metric_name in metrics.items():
-        print(metric_name)
         with open(path.join(calculations_dir, metric_file), 'rb') as f:
             diff_metric = pd.DataFrame(np.fromfile(f).astype(np.float16), columns=['diff'])
         df = pd.concat([df, diff_metric], axis=1)
@@ -167,7 +166,6 @@ def plot_mlp(df, base_metric, color_mapping, title='Proportion of perfect fairne
     ax.spines[['top', 'right']].set_visible(False)
     ax.legend()
     plt.tight_layout()
-    plt.show()
     return fig
 
 
@@ -201,7 +199,6 @@ def nan_probability(df, base_metric, color_mapping, title='Probability of NaN', 
     ax.yaxis.set_major_formatter(PercentFormatter(1))
 
     ax.legend()
-    plt.show()
     return fig
 
 

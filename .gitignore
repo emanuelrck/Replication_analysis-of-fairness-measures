@@ -131,6 +131,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-data/
+data/*
 out/
 .idea/
+
+!data/adult.data

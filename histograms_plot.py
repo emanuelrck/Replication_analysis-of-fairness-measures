@@ -81,8 +81,6 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
     # filter to get only results for selected ratios
     df = df.loc[df.ir.isin(irs) & df.gr.isin(grs)]
 
-    print(f'{m_name}: inf: {df.loc[np.isinf(df[m_name])].shape[0]}, nan: {df.loc[np.isnan(df[m_name])].shape[0]}')
-
     # list like: [['a00', 'a00n', 'a01', 'a01n',...], ...]
     mosaic = [
         [f'a{i}{g}{x}'
@@ -95,10 +93,8 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
                                   width_ratios=[50, 1]*len(grs),
                                   sharex=False, sharey=True,
                                   layout='constrained',
-                                  # figsize=(18, 14),
                                   figsize=(20, 10),
                                   gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
-    # fig.suptitle(f'{m_name}: probabilities for selected IR & GR')
     fig.suptitle(f'{m_name}')
 
     for i, ir_val in enumerate(irs):
@@ -109,7 +105,7 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
             total = df_tmp.shape[0]
 
             df_not_nan = df_tmp.loc[np.logical_not(np.isnan(df_tmp[m_name]))]
-            nan_prob = df_tmp.loc[np.isnan(df_tmp[m_name])].shape[0] / total
+            nan_prob = df_tmp.loc[np.isnan(df_tmp[m_name])].shape[0] / total if total > 0 else 0
 
             # prepare data for plotting
             binned, edges = np.histogram(df_not_nan[m_name], bins=bins_n)
@@ -143,8 +139,8 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
 # In[ ]:
 
 
-ratios = [1./28, 1./4, 1./2, 3./4, 27./28]
-ratios_labels = ['1/28', '1/4', '1/2', '3/4', '27/28']
+ratios = [1./28, 1./4, 1./2, 3./4, 27./28] if sample_size == 56 else [1/12, 1/4, 1/2, 3/4, 11/12]
+ratios_labels = ['1/28', '1/4', '1/2', '3/4', '27/28'] if sample_size == 56 else ['1/12', '1/4', '1/2', '3/4', '11/12']
 
 grs = np.float16(ratios)
 irs = np.float16(ratios[::-1])
@@ -172,9 +168,6 @@ def plot_histograms_no_nan(metric_info, grs, irs, ratios_labels, bins_n):
 
     # filter to get only results for selected ratios
     df = df.loc[df.ir.isin(irs) & df.gr.isin(grs)]
-
-    print(f'{m_name}: inf: {df.loc[np.isinf(df[m_name])].shape[0]}, nan: {df.loc[np.isnan(df[m_name])].shape[0]}')
-
     df = df.replace(np.inf, np.nan)
 
     fig, axs = plt.subplots(len(irs), len(grs),
@@ -224,81 +217,5 @@ def plot_histograms_no_nan(metric_info, grs, irs, ratios_labels, bins_n):
 for metric_info in metrics.items():
     fig = plot_histograms_no_nan(metric_info, grs, irs, ratios_labels, BINS)
     fig.savefig(path.join(plots_dir, f'histogram_b{BINS}_{metric_info[1]}_no_nan.png'), dpi=300)
-    # plt.show()
     plt.close(fig)
-
-
-# ### histograms properties
-# 
-# quantitative properties of histograms for the selected metrics
-
-# In[ ]:
-
-
-def get_properties(metric_info, ratio_b, ratio_imb):
-    m_file, m_name = metric_info
-    print(f'\n\n===\n{m_name}:')
-
-    with open(path.join(calculations_dir, m_file), 'rb') as f:
-        df = pd.concat([gr, ir, pd.DataFrame(np.fromfile(f).astype(np.float64), columns=[m_name])], axis=1)
-
-    df_b = df.loc[(df.ir == ratio_b) & (df.gr == ratio_b)]
-    df_imb = df.loc[(df.ir == ratio_imb) & (df.gr == ratio_imb)]
-    del df
-
-    for df, ratio in [(df_b, ratio_b), (df_imb, ratio_imb)]:
-        print(f' --> {ratio} <--')
-        print(f'inf: {df.loc[np.isinf(df[m_name])].shape[0] / df.shape[0]}, nan: {df.loc[np.isnan(df[m_name])].shape[0] / df.shape[0]}')
-        print(f'PPF: {df[df[m_name] == 0].shape[0] / df.shape[0]}')
-        mode = df[m_name].mode()[0]
-        print(f'Mode: {mode}\tprob: {df[df[m_name] == mode].shape[0] / df.shape[0]}')
-        print(f'Unique vals: {df[m_name].nunique()}')
-
-
-# In[ ]:
-
-
-for metric_info in metrics.items():
-    get_properties(metric_info, np.float16(1 / 2), np.float16(1 / 28))
-
-
-# In[ ]:
-
-
-def get_properties_selected(df, metric_info, gr, ir):
-    m_file, m_name= metric_info
-    print(f' --> IR: {ir}, GR: {gr} <--')
-
-    if gr:
-        cond_gr = df['gr'] == gr
-    else:
-        cond_gr = True
-    if ir:
-        cond_ir = df['ir'] == ir
-    else:
-        cond_ir = True
-
-    if (cond_ir is not True) or (cond_gr is not True):
-        df = df.loc[cond_gr & cond_ir]
-
-    print(f'nan: {df.loc[np.isnan(df[m_name])].shape[0] / df.shape[0] * 100}%, inf: {df.loc[np.isinf(df[m_name])].shape[0] / df.shape[0] * 100}%')
-    print(f'PPF: {df[df[m_name] == 0].shape[0] / df.shape[0] * 100}%')
-    print(f'Unique vals: {df[m_name].nunique()}')
-
-
-# In[ ]:
-
-
-ratios = [float(2/56), float(1/2), float(54/56), None]
-
-for metric_info in metrics.items():
-    m_file, m_name= metric_info
-    print(f'\n\n===\n{m_name}:')
-    with open(path.join(calculations_dir, m_file), 'rb') as f:
-        df = pd.concat([gr, ir, pd.DataFrame(np.fromfile(f).astype(np.float64), columns=[m_name])], axis=1)
-
-    for g in ratios:
-        for i in ratios:
-            get_properties_selected(df, metric_info, g, i)
-    del df
 

@@ -295,6 +295,7 @@ def plot_fairness_gb_metric(fairness, gr, ir):
     plt.tight_layout()
     return fig
 
+
 def plot_fairness_gb_clf(fairness, gr, ir):
     fig, ax = plt.subplots(figsize=(12, 8))
 
