@@ -14,7 +14,7 @@ and can be installed using `pip install -r requirements.txt`.
 
 ## Repository contents
 
-### Experiments with synthetic data (Secitons 3 and 4 of the paper)
+### Experiments with synthetic data (Sections 3 and 4 of the paper)
 
 - `sets_creation.py`: generation of synthetic data, consisting of all possible confusion matrices with regard to
     the protected groups and decision classes.
@@ -30,6 +30,19 @@ and can be installed using `pip install -r requirements.txt`.
 
 For the experiments with synthetic data, `sets_creation.py` and `metrics_calculations` need to be run first
 (in this specific order). The remaining scripts can be run in any order.
+
+In the paper, we used a dataset of all possible confusion matrices of n=56 samples.
+
+```
+# data generation - requires two arguments: the second one is the number of samples
+python sets_creation.py 8 56
+
+# other files don't take any arguments
+```
+
+Calculations for n=56 take a long time and lots of RAM. For a quick check, we recommend using n=24. However,
+this will also require to adjust the variable denoting the number of samples in `histograms_plot.py` and
+`perfect_fairness_and_undefined.py`, and possibly values of GR and IR show in the histograms.
 
 For the experiments with real-world data, `case_study.py` requires the file `adult.data` from the
 [UCI repository](https://archive.ics.uci.edu/ml/machine-learning-databases/adult/) to be present under `data/`.
