@@ -95,7 +95,11 @@ def calculate_ppf_diff(df, metrics, ratio_type, epsilon=0):
 # In[ ]:
 
 
-get_ipython().run_cell_magic('time', '', "\nfor ratio in ['ir', 'gr']:\n    with open(path.join(calculations_dir, f'{ratio}.bin'), 'rb') as f:\n        df = pd.DataFrame(np.fromfile(f).astype(np.float16), columns=[ratio])\n    calculate_ppf_diff(df, diff_metrics, ratio, epsilon)\ndel df\n")
+for ratio in ['ir', 'gr']:
+    with open(path.join(calculations_dir, f'{ratio}.bin'), 'rb') as f:
+        df = pd.DataFrame(np.fromfile(f).astype(np.float16), columns=[ratio])
+    calculate_ppf_diff(df, diff_metrics, ratio, epsilon)
+del df
 
 
 # # Plotting
@@ -105,7 +109,6 @@ get_ipython().run_cell_magic('time', '', "\nfor ratio in ['ir', 'gr']:\n    with
 # In[ ]:
 
 
-sample_size = 56        # 24
 calculations_dir = path.join('out', 'calculations', f'n{sample_size}')
 plots_dir = path.join('out', 'plots', f'n{sample_size}', 'perfect_fairness')
 os.makedirs(plots_dir, exist_ok=True)
