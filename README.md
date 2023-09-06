@@ -1,6 +1,6 @@
-# ECAI paper #320
+# Properties of fairness measures in the context of varying class imbalance and protected group ratios
 
-Properties of fairness measures in the context of varying class imbalance and protected group ratios
+---
 
 # Reproducibility
 
