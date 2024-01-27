@@ -20,10 +20,13 @@ def parse_args(argv):
     args = deepcopy(argv[1:])
     config = dict()
 
+    if not args:
+        args = ['-h']
+
     while len(args):
         match a := args.pop(0).lower():
             case '-g' | '--generate':
-                config[Action.GENERATE] = (args.pop(0), args.pop(0))
+                config[Action.GENERATE] = (int(args.pop(0)), int(args.pop(0)))
             case  '-l' | '--load':
                 config[Action.LOAD] = args.pop(0)
             case '-b' | '--save-binary':
@@ -39,7 +42,7 @@ def parse_args(argv):
                     '  -b <file> | --save-binary <file>: save to the file (binary)',
                     '  -t <file> | --save-txt <file>: save to the file (human-readable)',
                     'e.g.:',
-                    '  python3 sets_creation.py -g 8 56 -b "Set(08,56).bin"',
+                    '  python sets_creation.py -g 8 56 -b "Set(08,56).bin"',
                     '',
                     sep='\n'
                 )
@@ -159,6 +162,7 @@ if __name__ == '__main__':
     assert Action.GENERATE in conf.keys() or Action.LOAD in conf.keys(), \
         'The data must be either generated or loaded from the file.'
 
+    os.makedirs('out', exist_ok=True)
     start_exec_time = time.time()
 
     if Action.GENERATE in conf.keys():
@@ -177,14 +181,12 @@ if __name__ == '__main__':
     if f := conf.get(Action.SAVE_BIN):
         print('Starting: save dataset to binary file...')
         start_task_time = time.time()
-        os.makedirs('out', exist_ok=True)
         save_bin_dataset(X, os.path.join('out', f))
         print(f'Dataset saved in {time.time() - start_task_time}s')
 
     if f := conf.get(Action.SAVE_TXT):
         print('Starting: save dataset to text file...')
         start_task_time = time.time()
-        os.makedirs('out', exist_ok=True)
         save_txt_dataset(X, os.path.join('out', f))
         print(f'Dataset saved in {time.time() - start_task_time}s')
 
