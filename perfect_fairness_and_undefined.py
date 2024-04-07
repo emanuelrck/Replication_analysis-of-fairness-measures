@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # # Probability of Perfect Fairness and undefined values
-# 
+#
 # calculations for different metrics, group ratios and imbalance ratios
 
 # In[ ]:
@@ -15,21 +15,36 @@ from os import path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.ticker import PercentFormatter
+
+from utils import Timer
 
 warnings.filterwarnings('ignore')
 plt.style.use('default')
+
+# adjust font size on plots
+SMALL_SIZE = MEDIUM_SIZE = 16
+BIGGER_SIZE = 17
+
+plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)  # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
+plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 
 # In[ ]:
 
 
 sample_size = 56
-# setting epsilon to another (small positive) value allows to calculate the probability of being epsilon-close to perfect fairness
+# setting epsilon to another (small non-negative) value allows to calculate the probability of being epsilon-close to perfect fairness
 epsilon = 0
 
 calculations_dir = path.join('out', 'calculations', f'n{sample_size}')
+timer_dir = path.join('out', 'time')
 os.makedirs(calculations_dir, exist_ok=True)
+os.makedirs(timer_dir, exist_ok=True)
 dataset_path = path.join('..', 'fairness-data-generator', 'out', f'Set(08,{sample_size}).bin')
 
 
@@ -60,8 +75,7 @@ def calculate_ppf_diff(df, metrics, ratio_type, epsilon=0):
 
     for metric_file, metric_name in metrics.items():
         with open(path.join(calculations_dir, metric_file), 'rb') as f:
-            diff_metric = pd.DataFrame(np.fromfile(f).astype(np.float16), columns=['diff'])
-        df = pd.concat([df, diff_metric], axis=1)
+            df = pd.concat([df, pd.DataFrame(np.fromfile(f).astype(np.float16), columns=['diff'])], axis=1)
 
         pf_bygroup = list()
         nans_bygroup = list()
@@ -81,6 +95,7 @@ def calculate_ppf_diff(df, metrics, ratio_type, epsilon=0):
 
         # the dataframe (first col) can be reused for the next metric
         df.drop('diff', axis=1, inplace=True)
+        timer.checkpoint(f"calculate_ppf_diff {metric_name} ε={epsilon}")
 
     pf_probs[ratio_type] = pf_bygroup[ratio_type]
     pf_df = pd.DataFrame(pf_probs).reset_index()
@@ -94,15 +109,25 @@ def calculate_ppf_diff(df, metrics, ratio_type, epsilon=0):
 # In[ ]:
 
 
+timer = Timer().start()
+
 for ratio in ['ir', 'gr']:
-    with open(path.join(calculations_dir, f'{ratio}.bin'), 'rb') as f:
-        df = pd.DataFrame(np.fromfile(f).astype(np.float16), columns=[ratio])
-    calculate_ppf_diff(df, diff_metrics, ratio, epsilon)
-del df
+    print(ratio)
+    try:
+        with open(path.join(calculations_dir, f'{ratio}.bin'), 'rb') as f:
+            df = pd.DataFrame(np.fromfile(f).astype(np.float16), columns=[ratio])
+        timer.checkpoint(f"load {ratio} file")
+        calculate_ppf_diff(df, diff_metrics, ratio, epsilon)
+    finally:
+        del df
+
+# del df
+timer.reset()
+timer.print()
 
 
 # # Plotting
-# 
+#
 # reading data from the csv files created above
 
 # In[ ]:
@@ -112,22 +137,24 @@ calculations_dir = path.join('out', 'calculations', f'n{sample_size}')
 plots_dir = path.join('out', 'plots', f'n{sample_size}', 'perfect_fairness')
 os.makedirs(plots_dir, exist_ok=True)
 
-epsilons = [0,]
+epsilons = [
+    0,
+]
 ratio_types = ['gr', 'ir']
 
 
-dfs = {(ratio_type, epsilon): pd.read_csv(path.join(calculations_dir, f'perfect_fairness_{ratio_type}_eps{epsilon}.csv'))
-       for ratio_type in ratio_types
-       for epsilon in epsilons}
+dfs = {
+    (ratio_type, epsilon): pd.read_csv(path.join(calculations_dir, f'perfect_fairness_{ratio_type}_eps{epsilon}.csv'))
+    for ratio_type in ratio_types
+    for epsilon in epsilons
+}
 
 # colour scheme inspired by https://personal.sron.nl/~pault/
 diff_metrics_styles = {
     'Accuracy equality difference': {'color': '#6699CC', 'marker': '*'},
     'Statistical parity difference': {'color': '#994455', 'marker': '.'},
-
     'Equal opportunity difference': {'color': '#004488', 'marker': 'v'},
     'Predictive equality difference': {'color': '#997700', 'marker': 'x'},
-
     'Negative predictive parity difference': {'color': '#EECC66', 'marker': '+'},
     'Positive predictive parity difference': {'color': '#EE99AA', 'marker': 'o'},
 }
@@ -153,9 +180,9 @@ def melt_df(df, base_metric):
 
 
 def plot_mlp(df, base_metric, color_mapping, title='Proportion of perfect fairness', y_max=None):
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(9, 8))
     for col in color_mapping.keys():
-        ax.plot(df[base_metric], df[col], label=col.replace('difference', ''), alpha=.5, **color_mapping[col])
+        ax.plot(df[base_metric], df[col], label=col.replace('difference', ''), alpha=0.5, **color_mapping[col])
 
     if y_max is not None:
         ax.set_ylim(0, y_max)
@@ -172,12 +199,19 @@ def plot_mlp(df, base_metric, color_mapping, title='Proportion of perfect fairne
 # In[ ]:
 
 
+timer.start()
+
 for ratio_type in ratio_types:
     for eps in epsilons:
-        fig = plot_mlp(dfs[(ratio_type, eps)], ratio_type, diff_metrics_styles,
-                       title='')
-        fig.savefig(path.join(plots_dir, f'ppf_{ratio_type}_eps{eps}.svg'),
-                    dpi=300)
+        fig = plot_mlp(
+            dfs[(ratio_type, eps)], ratio_type, diff_metrics_styles, title='', y_max=1.0 if ratio_type == 'ir' else None
+        )
+
+        fig.savefig(path.join(plots_dir, f'ppf_{ratio_type}_zoom.pdf'), dpi=300)
+        fig.savefig(path.join(plots_dir, f'ppf_{ratio_type}_square.svg'), dpi=300)
+        timer.checkpoint(f"plot PPF {ratio_type} ε={eps}")
+
+timer.reset()
 
 
 # # Probability of NaN - plotting
@@ -186,9 +220,9 @@ for ratio_type in ratio_types:
 
 
 def nan_probability(df, base_metric, color_mapping, title='Probability of NaN', y_max=None):
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(9, 8))
     for col in color_mapping.keys():
-        ax.plot(df[base_metric], df[col], label=col.replace('difference', ''), alpha=.5, **color_mapping[col])
+        ax.plot(df[base_metric], df[col], label=col.replace('difference', ''), alpha=0.5, **color_mapping[col])
 
     if y_max is not None:
         ax.set_ylim(0, y_max)
@@ -196,25 +230,32 @@ def nan_probability(df, base_metric, color_mapping, title='Probability of NaN', 
     ax.set_xlabel(x_description[base_metric])
     ax.set_ylabel('Probability of undefined metric value')
     ax.spines[['top', 'right']].set_visible(False)
-    ax.yaxis.set_major_formatter(PercentFormatter(1))
 
     ax.legend()
+    fig.tight_layout()
     return fig
 
 
 # In[ ]:
 
 
-nan_dfs = {ratio_type: pd.read_csv(path.join(calculations_dir, f'nans_{ratio_type}.csv'))
-           for ratio_type in ratio_types}
+nan_dfs = {ratio_type: pd.read_csv(path.join(calculations_dir, f'nans_{ratio_type}.csv')) for ratio_type in ratio_types}
 
 for ratio_type in ratio_types:
-    fig = nan_probability(nan_dfs[ratio_type], ratio_type, diff_metrics_styles,
-                          title='')
-    fig.savefig(path.join(plots_dir, f'nan_{ratio_type}_line.svg'), dpi=300)
+    fig = nan_probability(nan_dfs[ratio_type], ratio_type, diff_metrics_styles, title='', y_max=1.0)
+    fig.savefig(path.join(plots_dir, f'nan_{ratio_type}_line.pdf'), dpi=300)
+    fig.savefig(path.join(plots_dir, f'nan_{ratio_type}_square_line.svg'), dpi=300)
 
 for ratio_type in ratio_types:
-    fig = nan_probability(nan_dfs[ratio_type], ratio_type, diff_metrics_styles,
-                          title=f'Probability of NaN for given value of {ratio_type.upper()}', y_max=.02)
-    fig.savefig(path.join(plots_dir, f'nan_{ratio_type}_zoom_line.svg'), dpi=300)
+    fig = nan_probability(
+        nan_dfs[ratio_type],
+        ratio_type,
+        diff_metrics_styles,
+        title=f'Probability of NaN for given value of {ratio_type.upper()}',
+        y_max=0.02,
+    )
+    fig.savefig(path.join(plots_dir, f'nan_{ratio_type}_square_zoom_line.pdf'), dpi=300)
+    fig.savefig(path.join(plots_dir, f'nan_{ratio_type}_square_zoom_line.svg'), dpi=300)
 
+timer.print()
+timer.to_file(fn='ppf.csv')

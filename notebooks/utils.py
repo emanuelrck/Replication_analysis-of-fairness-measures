@@ -33,19 +33,22 @@ from time import perf_counter
 # Group Ratio
 def get_group_ratios(df: pd.DataFrame):
     return (df.j_tp + df.j_fp + df.j_tn + df.j_fn) / (
-                df.i_tp + df.i_fp + df.i_tn + df.i_fn + df.j_tp + df.j_fp + df.j_tn + df.j_fn)
+        df.i_tp + df.i_fp + df.i_tn + df.i_fn + df.j_tp + df.j_fp + df.j_tn + df.j_fn
+    )
 
 
 # Imbalance Ratio
 def get_imbalance_ratios(df: pd.DataFrame):
     return (df.i_tp + df.i_fn + df.j_tp + df.j_fn) / (
-                df.i_tp + df.i_fp + df.i_tn + df.i_fn + df.j_tp + df.j_fp + df.j_tn + df.j_fn)
+        df.i_tp + df.i_fp + df.i_tn + df.i_fn + df.j_tp + df.j_fp + df.j_tn + df.j_fn
+    )
 
 
 # Stereotypical bias
 def get_stereotypical_bias(df: pd.DataFrame):
-    return (df.i_tp + df.i_fp + df.i_tn + df.i_fn) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn) - \
-        (df.j_tp + df.j_fp + df.j_tn + df.j_fn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
+    return (df.i_tp + df.i_fp + df.i_tn + df.i_fn) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn) - (
+        df.j_tp + df.j_fp + df.j_tn + df.j_fn
+    ) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
 
 
 # True Positive Rate
@@ -88,26 +91,30 @@ def get_negative_predictive_value_j(df: pd.DataFrame):
 # each group has the same probability of being classified with a positive outcome
 def get_statistical_parity(df: pd.DataFrame):
     return ((df.j_tp + df.j_fp) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn)) - (
-                (df.i_tp + df.i_fp) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn))
+        (df.i_tp + df.i_fp) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
+    )
 
 
 # Disparate Impact
 # similiar to statistical parity, but using ratio
 def get_disparate_impact(df: pd.DataFrame):
     return ((df.j_tp + df.j_fp) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn)) / (
-                (df.i_tp + df.i_fp) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn))
+        (df.i_tp + df.i_fp) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
+    )
 
 
 # Accuracy Equality Ratio
 def get_acc_equality_ratio(df: pd.DataFrame):
     return ((df.j_tp + df.j_tn) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn)) / (
-                (df.i_tp + df.i_tn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn))
+        (df.i_tp + df.i_tn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
+    )
 
 
 # Accuracy Equality Difference
 def get_acc_equality_diff(df: pd.DataFrame):
     return ((df.j_tp + df.j_tn) / (df.j_tp + df.j_fp + df.j_tn + df.j_fn)) - (
-                (df.i_tp + df.i_tn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn))
+        (df.i_tp + df.i_tn) / (df.i_tp + df.i_fp + df.i_tn + df.i_fn)
+    )
 
 
 # Equal Opportunity Ratio

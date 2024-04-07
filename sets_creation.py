@@ -4,6 +4,51 @@ import sys
 import math
 import numpy as np
 import pickle
+from copy import deepcopy
+from enum import StrEnum, auto
+
+
+class Action(StrEnum):
+    GENERATE = auto()
+    LOAD = auto()
+    SAVE_BIN = auto()
+    SAVE_TXT = auto()
+    HELP = auto()
+
+
+def parse_args(argv):
+    args = deepcopy(argv[1:])
+    config = dict()
+
+    if not args:
+        args = ['-h']
+
+    while len(args):
+        match a := args.pop(0).lower():
+            case '-g' | '--generate':
+                config[Action.GENERATE] = (int(args.pop(0)), int(args.pop(0)))
+            case  '-l' | '--load':
+                config[Action.LOAD] = args.pop(0)
+            case '-b' | '--save-binary':
+                config[Action.SAVE_BIN] = args.pop(0)
+            case '-t' | '--save-txt':
+                config[Action.SAVE_TXT] = args.pop(0)
+            case '-h' | '--help':
+                config[Action.HELP] = True
+                print(
+                    'Available options:',
+                    '  -g <n> <k> | --generate: generate a dataset of given size',
+                    '  -l <file> | --load <file>: load data from file',
+                    '  -b <file> | --save-binary <file>: save to the file (binary)',
+                    '  -t <file> | --save-txt <file>: save to the file (human-readable)',
+                    'e.g.:',
+                    '  python sets_creation.py -g 8 56 -b "Set(08,56).bin"',
+                    '',
+                    sep='\n'
+                )
+            case _:
+                print(f'Invalid argument: {a}')
+    return config
 
 
 def the_ratio(n, k):
@@ -109,33 +154,40 @@ def load_txt_dataset(fname):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        n, k = int(sys.argv[1]), int(sys.argv[2])
-        print('Command line params: ', end='')
-    else:
-        # k - size of set; n -  error matrix combinations
-        # k should be a multiple of n, (otherwise a potentially incomplete data set is generated)
-        n = 8
-        k = n * 5
-        print(f'Default params: ', end='')
+    conf = parse_args(sys.argv)
 
-    print(f'n={n}, k={k}')
-    prog_start_time = time.time()
-    bin_fname = f'Set({n:02},{k:02}).bin'
+    if Action.HELP in conf:
+        exit(0)
 
-    # Data generating
-    X = generate_dataset(n, k)
+    assert Action.GENERATE in conf.keys() or Action.LOAD in conf.keys(), \
+        'The data must be either generated or loaded from the file.'
 
     os.makedirs('out', exist_ok=True)
+    start_exec_time = time.time()
 
-    # Data saving - bin
-    save_bin_dataset(X, os.path.join('out', bin_fname))
+    if Action.GENERATE in conf.keys():
+        print('Starting: generate dataset...')
+        start_task_time = time.time()
+        n, k = conf[Action.GENERATE]
+        X = generate_dataset(n, k)
+        print(f'Dataset generated in {time.time() - start_task_time}s')
 
-    # Data loading - bin
-    # X = load_bin_dataset(os.path.join('out', bin_fname))
+    elif f := conf.get(Action.LOAD):
+        print('Starting: load dataset from file...')
+        start_task_time = time.time()
+        X = load_bin_dataset(os.path.join('out', f))
+        print(f'Dataset loaded in {time.time() - start_task_time}s')
 
-    # Data saving - txt
-    # txt_fname = f'Set({n:02},{k:02}).txt'
-    # save_txt_dataset(X, os.path.join('out', txt_fname))
+    if f := conf.get(Action.SAVE_BIN):
+        print('Starting: save dataset to binary file...')
+        start_task_time = time.time()
+        save_bin_dataset(X, os.path.join('out', f))
+        print(f'Dataset saved in {time.time() - start_task_time}s')
 
-    print(f'Total time: {time.time() - prog_start_time:.2f} [s]')
+    if f := conf.get(Action.SAVE_TXT):
+        print('Starting: save dataset to text file...')
+        start_task_time = time.time()
+        save_txt_dataset(X, os.path.join('out', f))
+        print(f'Dataset saved in {time.time() - start_task_time}s')
+
+    print(f'Total duration: {time.time() - start_exec_time}s')
