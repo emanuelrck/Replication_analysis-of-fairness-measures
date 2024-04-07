@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # # Histograms of metric values for selected IR & GR
-# 
+#
 # ### imports, setup and loading data
 
 # In[ ]:
@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from utils import Timer
+
 warnings.filterwarnings('ignore')
 
 
@@ -26,9 +28,11 @@ warnings.filterwarnings('ignore')
 sample_size = 56
 plots_dir = os.path.join('out', 'plots', f'n{sample_size}', 'histograms')
 calculations_dir = os.path.join('out', 'calculations', f'n{sample_size}')
+timer_dir = path.join('out', 'time')
 
 os.makedirs(plots_dir, exist_ok=True)
 os.makedirs(calculations_dir, exist_ok=True)
+os.makedirs(timer_dir, exist_ok=True)
 
 metrics = {
     'acc_equality_diff.bin': 'Accuracy equality',
@@ -45,12 +49,12 @@ plt.style.use('default')
 SMALL_SIZE = MEDIUM_SIZE = 14
 BIGGER_SIZE = 15
 
-plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
-plt.rc('xtick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=SMALL_SIZE)    # fontsize of the tick labels
-plt.rc('legend', fontsize=SMALL_SIZE)    # legend fontsize
+plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+plt.rc('axes', titlesize=SMALL_SIZE)  # fontsize of the axes title
+plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 
@@ -82,19 +86,17 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
     df = df.loc[df.ir.isin(irs) & df.gr.isin(grs)]
 
     # list like: [['a00', 'a00n', 'a01', 'a01n',...], ...]
-    mosaic = [
-        [f'a{i}{g}{x}'
-         for g in range(len(grs))
-         for x in ['', 'n']]
-         for i in range(len(irs))
-    ]
+    mosaic = [[f'a{i}{g}{x}' for g in range(len(grs)) for x in ['', 'n']] for i in range(len(irs))]
 
-    fig, axs = plt.subplot_mosaic(mosaic,
-                                  width_ratios=[50, 1]*len(grs),
-                                  sharex=False, sharey=True,
-                                  layout='constrained',
-                                  figsize=(20, 10),
-                                  gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+    fig, axs = plt.subplot_mosaic(
+        mosaic,
+        width_ratios=[50, 1] * len(grs),
+        sharex=False,
+        sharey=True,
+        layout='constrained',
+        figsize=(20, 14),
+        gridspec_kw={'wspace': 0.1, 'hspace': 0.1},
+    )
     fig.suptitle(f'{m_name}')
 
     for i, ir_val in enumerate(irs):
@@ -124,7 +126,7 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
                 axs[f'a{i}{g}'].set_ylabel(f'IR = {ir_labels[i]}')
             if i == 0:
                 axs[f'a{i}{g}'].set_title(f'GR = {gr_labels[g]}')
-            if i == len(irs) - 1:   # last row
+            if i == len(irs) - 1:  # last row
                 axs[f'a{i}{g}n'].set_xticks([0], ['Undef.'])
             else:
                 axs[f'a{i}{g}'].set_xticklabels([])
@@ -139,7 +141,9 @@ def plot_histograms(metric_info, grs, irs, ratios_labels, bins_n):
 # In[ ]:
 
 
-ratios = [1./28, 1./4, 1./2, 3./4, 27./28] if sample_size == 56 else [1/12, 1/4, 1/2, 3/4, 11/12]
+ratios = (
+    [1.0 / 28, 1.0 / 4, 1.0 / 2, 3.0 / 4, 27.0 / 28] if sample_size == 56 else [1 / 12, 1 / 4, 1 / 2, 3 / 4, 11 / 12]
+)
 ratios_labels = ['1/28', '1/4', '1/2', '3/4', '27/28'] if sample_size == 56 else ['1/12', '1/4', '1/2', '3/4', '11/12']
 
 grs = np.float16(ratios)
@@ -147,14 +151,18 @@ irs = np.float16(ratios[::-1])
 
 BINS = 109
 
+timer = Timer().start()
+
 for metric_info in metrics.items():
     fig = plot_histograms(metric_info, grs, irs, ratios_labels, BINS)
     fig.savefig(path.join(plots_dir, f'histogram_b{BINS}_{metric_info[1]}_titled.svg'), dpi=300)
+    fig.savefig(path.join(plots_dir, f'histogram_b{BINS}_{metric_info[1]}_titled.png'), dpi=300)
     plt.close(fig)
+    timer.checkpoint(f"plot {metric_info[1]} with NaNs")
 
 
 # ### Histograms omitting undefined values
-# 
+#
 # not used in the paper, but can be a useful reference
 
 # In[ ]:
@@ -170,11 +178,15 @@ def plot_histograms_no_nan(metric_info, grs, irs, ratios_labels, bins_n):
     df = df.loc[df.ir.isin(irs) & df.gr.isin(grs)]
     df = df.replace(np.inf, np.nan)
 
-    fig, axs = plt.subplots(len(irs), len(grs),
-                            sharey=True, sharex=True,
-                            layout='constrained', figsize=(18, 14),
-                            gridspec_kw={'wspace': 0.1,
-                                         'hspace': 0.1})
+    fig, axs = plt.subplots(
+        len(irs),
+        len(grs),
+        sharey=True,
+        sharex=True,
+        layout='constrained',
+        figsize=(20, 18),
+        gridspec_kw={'wspace': 0.1, 'hspace': 0.1},
+    )
 
     fig.suptitle(f'{m_name}: probabilities for selected IR & GR')
 
@@ -214,8 +226,14 @@ def plot_histograms_no_nan(metric_info, grs, irs, ratios_labels, bins_n):
 # In[ ]:
 
 
+timer.start()
+
 for metric_info in metrics.items():
     fig = plot_histograms_no_nan(metric_info, grs, irs, ratios_labels, BINS)
     fig.savefig(path.join(plots_dir, f'histogram_b{BINS}_{metric_info[1]}_no_nan.png'), dpi=300)
     plt.close(fig)
+    timer.checkpoint(f"plot {metric_info[1]} without NaNs")
 
+timer.reset()
+timer.print()
+timer.to_file(fn='histograms.csv')
