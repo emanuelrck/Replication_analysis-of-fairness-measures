@@ -193,8 +193,8 @@ class Timer:
             print('\n')
 
     def to_file(self, fn: str):
-        timer_dir = path.join('out', 'time')
-        with open(path.join(timer_dir, fn), 'a') as f:
+        timer_dir = "out/time/"
+        with open(timer_dir + fn, 'a') as f:
             for rec in self.records:
                 for k, v in rec.items():
                     f.write(f'{k}, {v}\n')
