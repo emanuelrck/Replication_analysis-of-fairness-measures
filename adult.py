@@ -23,12 +23,12 @@ from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 from utils import Timer
-SEED = 2137
+SEED = 1000
 
 #_mod -> deixou de ser de 0.01 a 0.99 para 0.05 a 0.95
 # morecases ja tem mod e usa 2300 em vez de 1100
 # race ja tem a mod e o numero max de casos para a race
-DIRETORIA_EXP = 'exp_adult_seed2137_race'
+DIRETORIA_EXP = 'exp_adult_seed1000_race_099'
 # [majority, minority]
 #SENSIVEL_VALUES = ['Male', 'Female']
 #SENSIVEL_NAME = 'sex' # tentar fazer para race
@@ -46,7 +46,7 @@ TARGET_NAME = 'income'
 #ver se dataset esta binarizado na raça se nao, binarizar e tirar 3 seeds de raça
 
 
-def split_data(df, n, gr, ir):
+def split_data(df, n, gr, ir,split_seed):
     """
     :param df: original data
     :param n: final size of the sample
@@ -60,10 +60,10 @@ def split_data(df, n, gr, ir):
 
     sample = pd.concat(
         [
-            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[1]) & (df[TARGET_NAME] == TARGET_VALUES[0])].sample(n=int(f0), random_state=SEED),
-            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[1]) & (df[TARGET_NAME] == TARGET_VALUES[1])].sample(n=int(f1), random_state=SEED),
-            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[0]) & (df[TARGET_NAME] == TARGET_VALUES[0])].sample(n=int(m0), random_state=SEED),
-            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[0]) & (df[TARGET_NAME] == TARGET_VALUES[1])].sample(n=int(m1), random_state=SEED),
+            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[1]) & (df[TARGET_NAME] == TARGET_VALUES[0])].sample(n=int(f0), random_state=split_seed),
+            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[1]) & (df[TARGET_NAME] == TARGET_VALUES[1])].sample(n=int(f1), random_state=split_seed),
+            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[0]) & (df[TARGET_NAME] == TARGET_VALUES[0])].sample(n=int(m0), random_state=split_seed),
+            df[(df[SENSIVEL_NAME] == SENSIVEL_VALUES[0]) & (df[TARGET_NAME] == TARGET_VALUES[1])].sample(n=int(m1), random_state=split_seed),
         ]
     ).reset_index(drop=True)
     return sample
@@ -255,6 +255,8 @@ def plot_line(fairness: pd.DataFrame, metric: str, ratio_type: str, fill='std', 
 
     # workaround to keep the x tick labels readable
     ratios_ticks = [
+        '0.01',
+        '  \n0.02',
         '0.05',
         '0.1',
         '0.2',
@@ -265,7 +267,9 @@ def plot_line(fairness: pd.DataFrame, metric: str, ratio_type: str, fill='std', 
         '0.7',
         '0.8',
         '0.9',
-        '0.95'
+        '0.95',
+        '0.98\n  ',
+        '0.99',
     ]
 
     ax.set_xticks(ratios, ratios_ticks, rotation=90)
@@ -412,6 +416,8 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
                 )
 
         ratios_ticks = [
+            '0.01\n',
+            '0.02',
             '0.05',
             '0.1',
             '0.2',
@@ -422,7 +428,9 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
             '0.7',
             '0.8',
             '0.9',
-            '0.95'
+            '0.95',
+            '0.98',
+            '\n0.99',
         ]
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
@@ -437,356 +445,370 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
     plt.tight_layout()
     return fig
 
+
 if __name__ == '__main__':
-    
-    
-    warnings.filterwarnings('ignore')
-    plt.style.use('default')
+    seeds_split_data = [1120, 2928, 2379, 2050, 1962, 230, 825, 1781, 476, 1243, 1187, 1105, 2391, 2779, 1337, 2210, 1964, 2362, 376, 1437, 723, 485, 2033, 2815, 839, 1864, 1618, 546, 2938, 2796, 1028, 2388, 653, 264, 2489, 2531, 1778, 28, 2929, 1874, 1614, 313, 177, 1669, 2435, 1331, 2700, 1495, 140, 457]
+    seeds = [1000, 2000, 2137]
+    sizes_samples = [1400,2100]
+    values_sens = [['White','notwhite'],['Male', 'Female']]
+    names_sens =['race','sex']
+    for i in seeds:
+        SEED = i
+        for j in range(len(names_sens)):
+            SENSIVEL_VALUES = values_sens[j]
+            SENSIVEL_NAME = names_sens[j]
+            SAMPLE_SIZE = sizes_samples[j]
+            DIRETORIA_EXP = "exp_adult_differentSplit_seed"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
+            
 
-    # colour scheme inspired by https://personal.sron.nl/~pault/
-    colours = ['#EE7733', '#33BBEE', '#EE3377', '#888888', '#009988', "#332288"]
+            warnings.filterwarnings('ignore')
+            plt.style.use('default')
 
-    x_labels = {
-        'gr': 'Protected group ratio (GR)',
-        'ir': 'Imbalance ratio (IR)',
-    }
+            # colour scheme inspired by https://personal.sron.nl/~pault/
+            colours = ['#EE7733', '#33BBEE', '#EE3377', '#888888', '#009988', "#332288"]
 
-    SMALL_SIZE = 10
-    MEDIUM_SIZE = 13
-    BIGGER_SIZE = 15
+            x_labels = {
+                'gr': 'Protected group ratio (GR)',
+                'ir': 'Imbalance ratio (IR)',
+            }
 
-    plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
-    plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
-    plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
-    plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
-    plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
-    plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
-    plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+            SMALL_SIZE = 10
+            MEDIUM_SIZE = 13
+            BIGGER_SIZE = 15
 
-   
-    timer_dir = path.join(DIRETORIA_EXP, 'time')
+            plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+            plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
+            plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+            plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+            plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+            plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
+            plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-    #-------------------------- Tratar dataset
-
-    timer = Timer().start()
-
-    features = [
-        'age',
-        'workclass',
-        'fnlwgt',  # removed
-        'education',  # sorted later on
-        'education-num',
-        'marital-status',
-        'occupation',
-        'relationship',
-        'race',
-        'sex',
-        'capital-gain',
-        'capital-loss',
-        'hours-per-week',
-        'native-country',
-    ]
-    dataset = pd.read_csv('data/adult.data', sep=', ', na_values=['?', ' ?'], header=0, names=features + [TARGET_NAME])
-    # Verificar a transformação
-    #print(dataset['race'].value_counts())
-    # ------------------------------------------Transformar o atributo 'race'
-    dataset['race'] = dataset['race'].apply(lambda x: 'White' if x == 'White' else 'notwhite')
-    # Verificar a transformação
-    #print(dataset['race'].value_counts())
-    
-    
-    dataset.drop(columns=['fnlwgt'], inplace=True)
-    features.remove('fnlwgt')
-
-    timer.checkpoint(f"read data")
-    timer.reset()
-
-    plots_dir = os.path.join(DIRETORIA_EXP, 'plots', 'case_study', 'census_income')
-    os.makedirs(plots_dir, exist_ok=True)
-
-    # ### splitting the data into subsets
-    #
-    # To enable comparison for different GR and IR.
-    #
-    # The split is proportional to group/class sizes
-    n = dataset.shape[0]
-    gr = ir = 0.5
-
-   
-    
-    #--------------------------------------------adicionar aqui as sensiveis
-   
-
-
-    # ## preprocessing and helpers for classification/evaluation
-    categorical_fs = [
-        'workclass',
-        'education',
-        'marital-status',
-        'occupation',
-        'relationship',
-        'race',
-        'sex',
-        'native-country',
-    ]
-
-    education_order = [
-        'Preschool',
-        '1st-4th',
-        '5th-6th',
-        '7th-8th',
-        '9th',
-        '10th',
-        '11th',
-        '12th',
-        'HS-grad',
-        'Some-college',
-        'Assoc-acdm',
-        'Assoc-voc',
-        'Bachelors',
-        'Masters',
-        'Prof-school',
-        'Doctorate',
-    ]
-
-    # get the columns in the correct order
-    cols = np.concatenate([dataset.columns.copy(deep=True).drop(categorical_fs + [TARGET_NAME]), categorical_fs])
-    cols_d = {c: i for i, c in enumerate(cols)}
-
-    classifiers = [
-        [RandomForestClassifier, {'random_state': SEED}],
-        [DecisionTreeClassifier, {'random_state': SEED}],
-        [GaussianNB, {}],
-        [LogisticRegression, {}],
-        [KNeighborsClassifier, {}],
-        [MLPClassifier, {'random_state': SEED}],
-    ]
-    #-----------------------------------------------------------metodo holdout_ define size de dataset
-    # ### Classification
-    # setup
-    holdout_splits = 50
-    holdout = ShuffleSplit(n_splits=holdout_splits, test_size=0.33, random_state=SEED)
-    
-
-    #--------------------------------------------------------------aqui define quais as combinaçoes de porporçoes de datasets (na variavel ratios) mas ter cuidado com os pontos dos plots
-    rs = [0.05] + [round(x, 2) for x in np.arange(0.1, 1.0, 0.1)] + [0.95]
-    ratios = [[0.5, ir] for ir in rs] + [[gr, 0.5] for gr in rs]
-   
-    #--------------------------------------
-    # calculations
-    fairness_results = []
-    results = []
-    timer.start()
-
-    for gr, ir in ratios:
-        print(f'GR: {gr}, IR: {ir}')
-        swap_gr, swap_ir = False, False
         
-        df = split_data(dataset, SAMPLE_SIZE, gr, ir)
-        X_all, y_all = preprocess(df)
-        timer.checkpoint(f"gr={gr} ir={ir} data preprocessing")
+            timer_dir = path.join(DIRETORIA_EXP, 'time')
 
-        for i, (traini, testi) in enumerate(holdout.split(X_all)):
-            X_train, X_test = X_all[traini], X_all[testi]
-            y_train, y_test = y_all[traini], y_all[testi]
+            #-------------------------- Tratar dataset
 
-            for clf, kwargs in classifiers:
-                pipe = make_pipeline(KNNImputer(), StandardScaler(), clf(**kwargs)).fit(X_train, y_train)
-                f = calculate_fairness(pipe, X_test, y_test, cols_d[SENSIVEL_NAME], group=1 - int(swap_gr), cls=1 - int(swap_ir))
+            timer = Timer().start()
 
-                for p_metric in [roc_auc_score, geometric_mean_score, recall_score, f1_score]:
-                    results.append(
-                        [
-                            gr,
-                            ir,
-                            clf.__name__.replace('Classifier', ''),
-                            p_metric.__name__,
-                            p_metric(y_test, pipe.predict(X_test), labels=[0, 1]),
-                        ]
-                    )
+            features = [
+                'age',
+                'workclass',
+                'fnlwgt',  # removed
+                'education',  # sorted later on
+                'education-num',
+                'marital-status',
+                'occupation',
+                'relationship',
+                'race',
+                'sex',
+                'capital-gain',
+                'capital-loss',
+                'hours-per-week',
+                'native-country',
+            ]
+            dataset = pd.read_csv('data/adult.data', sep=', ', na_values=['?', ' ?'], header=0, names=features + [TARGET_NAME])
+            # Verificar a transformação
+            #print(dataset['race'].value_counts())
+            # ------------------------------------------Transformar o atributo 'race'
+            dataset['race'] = dataset['race'].apply(lambda x: 'White' if x == 'White' else 'notwhite')
+            # Verificar a transformação
+            #print(dataset['race'].value_counts())
+            
+            
+            dataset.drop(columns=['fnlwgt'], inplace=True)
+            features.remove('fnlwgt')
 
-                for metric, value in f.items():
-                    fairness_results.append([gr, ir, clf.__name__.replace('Classifier', ''), metric, value])
-                timer.checkpoint(f"gr={gr} ir={ir} classification with {clf.__name__} rep. {i}")
+            timer.checkpoint(f"read data")
+            timer.reset()
 
-    results_cv = pd.DataFrame(results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
-    fairness_results_cv = pd.DataFrame(fairness_results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
+            plots_dir = os.path.join(DIRETORIA_EXP, 'plots', 'case_study', 'census_income')
+            os.makedirs(plots_dir, exist_ok=True)
 
-    timer.checkpoint(f"saving results")
-    timer.reset()
-    #----------------------------------
-    # # pickle the results
+            # ### splitting the data into subsets
+            #
+            # To enable comparison for different GR and IR.
+            #
+            # The split is proportional to group/class sizes
+            n = dataset.shape[0]
+            gr = ir = 0.5
 
-    with open(os.path.join(DIRETORIA_EXP, 'fairness_results_cv.pkl'), 'wb') as f:
-        pickle.dump(fairness_results_cv, f)
+        
+            
+            #--------------------------------------------adicionar aqui as sensiveis
+        
 
-    with open(os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl'), 'wb') as f:
-        pickle.dump(results_cv, f)
-    #------------------
-    #plot the absolute value of fairness metrics
-    for fill in ('std', 'err'):
-        subdir = f'line_{fill}'
-        os.makedirs(os.path.join(plots_dir, subdir), exist_ok=True)
 
-        for ratio_type, ylim in [
-            ('ir', (-0.9, 0.9)),
-            ('gr', (-0.9, 0.9)),
-        ]:
-            for metric in fairness_results_cv['metric'].unique():
-                fig = plot_line(fairness_results_cv, metric, ratio_type, ylim=ylim, fill=fill)
-                fig.savefig(os.path.join(plots_dir, subdir, f'fairness_line_{ratio_type}_{metric}.png'))
-                fig.savefig(os.path.join(plots_dir, subdir, f'fairness_line_{ratio_type}_{metric}.pdf'))
+            # ## preprocessing and helpers for classification/evaluation
+            categorical_fs = [
+                'workclass',
+                'education',
+                'marital-status',
+                'occupation',
+                'relationship',
+                'race',
+                'sex',
+                'native-country',
+            ]
+
+            education_order = [
+                'Preschool',
+                '1st-4th',
+                '5th-6th',
+                '7th-8th',
+                '9th',
+                '10th',
+                '11th',
+                '12th',
+                'HS-grad',
+                'Some-college',
+                'Assoc-acdm',
+                'Assoc-voc',
+                'Bachelors',
+                'Masters',
+                'Prof-school',
+                'Doctorate',
+            ]
+
+            # get the columns in the correct order
+            cols = np.concatenate([dataset.columns.copy(deep=True).drop(categorical_fs + [TARGET_NAME]), categorical_fs])
+            cols_d = {c: i for i, c in enumerate(cols)}
+
+            classifiers = [
+                [RandomForestClassifier, {'random_state': SEED}],
+                [DecisionTreeClassifier, {'random_state': SEED}],
+                [GaussianNB, {}],
+                [LogisticRegression, {}],
+                [KNeighborsClassifier, {}],
+                [MLPClassifier, {'random_state': SEED}],
+            ]
+            #-----------------------------------------------------------metodo holdout_ define size de dataset
+            # ### Classification
+            # setup
+            holdout_splits = 1
+            holdout = ShuffleSplit(n_splits=holdout_splits, test_size=0.33, random_state=SEED)
+            
+
+            #--------------------------------------------------------------aqui define quais as combinaçoes de porporçoes de datasets (na variavel ratios) mas ter cuidado com os pontos dos plots
+            rs = [0.01, 0.02, 0.05] + [round(x, 2) for x in np.arange(0.1, 1.0, 0.1)] + [0.95, 0.98, 0.99]
+            ratios = [[0.5, ir] for ir in rs] + [[gr, 0.5] for gr in rs]
+        
+            #--------------------------------------
+            # calculations
+            fairness_results = []
+            results = []
+            timer.start()
+
+            for gr, ir in ratios:
+                print(f'GR: {gr}, IR: {ir}')
+                swap_gr, swap_ir = False, False
+                
+                for split_seed in seeds_split_data:
+                    df = split_data(dataset, SAMPLE_SIZE, gr, ir,split_seed)
+                    X_all, y_all = preprocess(df)
+                    timer.checkpoint(f"gr={gr} ir={ir} data preprocessing")
+
+                    for i, (traini, testi) in enumerate(holdout.split(X_all)):
+                        X_train, X_test = X_all[traini], X_all[testi]
+                        y_train, y_test = y_all[traini], y_all[testi]
+
+                        for clf, kwargs in classifiers:
+                            pipe = make_pipeline(KNNImputer(), StandardScaler(), clf(**kwargs)).fit(X_train, y_train)
+                            f = calculate_fairness(pipe, X_test, y_test, cols_d[SENSIVEL_NAME], group=1 - int(swap_gr), cls=1 - int(swap_ir))
+
+                            for p_metric in [geometric_mean_score, recall_score, f1_score]:
+                                results.append(
+                                    [
+                                        gr,
+                                        ir,
+                                        clf.__name__.replace('Classifier', ''),
+                                        p_metric.__name__,
+                                        p_metric(y_test, pipe.predict(X_test), labels=[0, 1]),
+                                    ]
+                                )
+
+                            for metric, value in f.items():
+                                fairness_results.append([gr, ir, clf.__name__.replace('Classifier', ''), metric, value])
+                            timer.checkpoint(f"gr={gr} ir={ir} classification with {clf.__name__} rep. {i}")
+
+            results_cv = pd.DataFrame(results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
+            fairness_results_cv = pd.DataFrame(fairness_results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
+
+            timer.checkpoint(f"saving results")
+            timer.reset()
+            #----------------------------------
+            # # pickle the results
+
+            with open(os.path.join(DIRETORIA_EXP, 'fairness_results_cv.pkl'), 'wb') as f:
+                pickle.dump(fairness_results_cv, f)
+
+            with open(os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl'), 'wb') as f:
+                pickle.dump(results_cv, f)
+            #------------------
+            #plot the absolute value of fairness metrics
+            for fill in ('std', 'err'):
+                subdir = f'line_{fill}'
+                os.makedirs(os.path.join(plots_dir, subdir), exist_ok=True)
+
+                for ratio_type, ylim in [
+                    ('ir', (-0.9, 0.9)),
+                    ('gr', (-0.9, 0.9)),
+                ]:
+                    for metric in fairness_results_cv['metric'].unique():
+                        fig = plot_line(fairness_results_cv, metric, ratio_type, ylim=ylim, fill=fill)
+                        fig.savefig(os.path.join(plots_dir, subdir, f'fairness_line_{ratio_type}_{metric}.png'))
+                        fig.savefig(os.path.join(plots_dir, subdir, f'fairness_line_{ratio_type}_{metric}.pdf'))
+                        plt.close()
+
+            ### plot nan count
+            #
+            # check how many results are undefined for the metrics and ratios
+
+            #--------------------------------------------
+            for ratio_type in ['ir', 'gr']:
+                fig = plot_nan(
+                    fairness_results_cv,
+                    ratio_type,
+                    metrics=[
+                        'Accuracy Equality Difference',
+                        'Statistical Parity Difference',
+                        'Equal Opportunity Difference',
+                        'Predictive Equality Difference',
+                        'Positive Predictive Parity Difference',
+                        'Negative Predictive Parity Difference',
+                    ],
+                )
+                fig.savefig(os.path.join(plots_dir, f'fairness_nan_{ratio_type}.png'))
+                fig.savefig(os.path.join(plots_dir, f'fairness_nan_{ratio_type}.pdf'))
                 plt.close()
 
-    ### plot nan count
-    #
-    # check how many results are undefined for the metrics and ratios
 
-    #--------------------------------------------
-    for ratio_type in ['ir', 'gr']:
-        fig = plot_nan(
-            fairness_results_cv,
-            ratio_type,
-            metrics=[
+            # ## Plot all metrics together
+
+            #------------------------------------------
+            timer.start()
+
+            for ratio_type in ['ir', 'gr']:
+                fig = plot_line_all(
+                    fairness_results_cv,
+                    [
+                        'Accuracy Equality Difference',
+                        'Statistical Parity Difference',
+                        'Equal Opportunity Difference',
+                        'Predictive Equality Difference',
+                        'Positive Predictive Parity Difference',
+                        'Negative Predictive Parity Difference',
+                    ],
+                    ratio_type,
+                    fill='std',
+                    ylim=(-0.9, 0.9),
+                )
+                fig.savefig(os.path.join(plots_dir, f'fairness_all_{ratio_type}.png'))
+                fig.savefig(os.path.join(plots_dir, f'fairness_all_{ratio_type}.pdf'))
+                plt.close()
+                timer.checkpoint(f"plotting for {ratio_type}")
+            timer.reset()
+
+
+            # ## Table with classification metrics
+            #
+            # this code directly prints the tables with formatting for LaTeX
+
+            #-----------------------------------------------
+            clfs = results_cv['clf'].unique()
+            scores = results_cv['metric'].unique()
+            scores_strs = ['ROC AUC', 'G mean', 'recall', 'F1']
+
+
+            for m, metric in enumerate(scores):
+                print(f'\\begin{{tabular}}{{{"l l | " + "c " * len(clfs)}}}')
+                print('\\multicolumn{' + str(len(scores) + 2) + '}{c}{' + scores_strs[m] + '} \\\\')
+                print('IR & GR & ' + ' & '.join(clfs) + ' \\\\')
+                for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+                    for ratio_val in sorted(results_cv[ratio_type].unique()):
+                        subset = results_cv[
+                            (results_cv['metric'] == metric)
+                            & (results_cv[ratio_type] == ratio_val)
+                            & (results_cv[other_ratio] == 0.5)
+                        ]
+                        if ratio_type == 'ir':
+                            print(f'{ratio_val:.2f} & 0.50 ', end='')
+                        else:
+                            print(f'0.50 & {ratio_val:.2f} ', end='')
+
+                        for clf in clfs:
+                            print(
+                                f'& {subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f}) ',
+                                end='',
+                            )
+
+                        print('\\\\')
+                print('\\end{tabular}\n\n')
+
+            timer.to_file(fn='case_study.csv')
+
+
+            # # Save to CSV for scatter plots
+
+            #----------------------------------
+            # results to csv
+
+            clfs = results_cv['clf'].unique()
+            scores = results_cv['metric'].unique()
+            scores_strs = ['ROC AUC', 'G mean', 'recall', 'F1']
+
+
+            for m, metric in enumerate(scores):
+                lines = ['IR, GR, ' + ', '.join(clfs)]
+
+                for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+                    for ratio_val in sorted(results_cv[ratio_type].unique()):
+                        subset = results_cv[
+                            (results_cv['metric'] == metric)
+                            & (results_cv[ratio_type] == ratio_val)
+                            & (results_cv[other_ratio] == 0.5)
+                        ]
+                        if ratio_type == 'ir':
+                            l = f'{ratio_val:.2f}, 0.50'
+                        else:
+                            l = f'0.50, {ratio_val:.2f}'
+                        for clf in clfs:
+                            l += f'  ,{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
+                        lines.append(l)
+
+                with open(os.path.join(DIRETORIA_EXP, f'clf_results_agg_{metric}.csv'), 'w') as f:
+                    f.write('\n'.join(lines))
+
+            # fairness results to csv
+
+            clfs = fairness_results_cv['clf'].unique()
+            scores = fairness_results_cv['metric'].unique()
+            scores_strs = [
                 'Accuracy Equality Difference',
                 'Statistical Parity Difference',
                 'Equal Opportunity Difference',
                 'Predictive Equality Difference',
                 'Positive Predictive Parity Difference',
                 'Negative Predictive Parity Difference',
-            ],
-        )
-        fig.savefig(os.path.join(plots_dir, f'fairness_nan_{ratio_type}.png'))
-        fig.savefig(os.path.join(plots_dir, f'fairness_nan_{ratio_type}.pdf'))
-        plt.close()
+            ]
 
+            for m, metric in enumerate(scores):
+                lines = ['IR, GR, ' + ', '.join(clfs)]
 
-    # ## Plot all metrics together
+                for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+                    for ratio_val in sorted(fairness_results_cv[ratio_type].unique()):
+                        subset = fairness_results_cv[
+                            (fairness_results_cv['metric'] == metric)
+                            & (fairness_results_cv[ratio_type] == ratio_val)
+                            & (fairness_results_cv[other_ratio] == 0.5)
+                        ]
+                        if ratio_type == 'ir':
+                            l = f'{ratio_val:.2f}, 0.50'
+                        else:
+                            l = f'0.50, {ratio_val:.2f}'
+                        for clf in clfs:
+                            l += f'  ,{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
+                        lines.append(l)
 
-    #------------------------------------------
-    timer.start()
-
-    for ratio_type in ['ir', 'gr']:
-        fig = plot_line_all(
-            fairness_results_cv,
-            [
-                'Accuracy Equality Difference',
-                'Statistical Parity Difference',
-                'Equal Opportunity Difference',
-                'Predictive Equality Difference',
-                'Positive Predictive Parity Difference',
-                'Negative Predictive Parity Difference',
-            ],
-            ratio_type,
-            fill='std',
-            ylim=(-0.9, 0.9),
-        )
-        fig.savefig(os.path.join(plots_dir, f'fairness_all_{ratio_type}.png'))
-        fig.savefig(os.path.join(plots_dir, f'fairness_all_{ratio_type}.pdf'))
-        plt.close()
-        timer.checkpoint(f"plotting for {ratio_type}")
-    timer.reset()
-
-
-    # ## Table with classification metrics
-    #
-    # this code directly prints the tables with formatting for LaTeX
-
-    #-----------------------------------------------
-    clfs = results_cv['clf'].unique()
-    scores = results_cv['metric'].unique()
-    scores_strs = ['ROC AUC', 'G mean', 'recall', 'F1']
-
-
-    for m, metric in enumerate(scores):
-        print(f'\\begin{{tabular}}{{{"l l | " + "c " * len(clfs)}}}')
-        print('\\multicolumn{' + str(len(scores) + 2) + '}{c}{' + scores_strs[m] + '} \\\\')
-        print('IR & GR & ' + ' & '.join(clfs) + ' \\\\')
-        for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
-            for ratio_val in sorted(results_cv[ratio_type].unique()):
-                subset = results_cv[
-                    (results_cv['metric'] == metric)
-                    & (results_cv[ratio_type] == ratio_val)
-                    & (results_cv[other_ratio] == 0.5)
-                ]
-                if ratio_type == 'ir':
-                    print(f'{ratio_val:.2f} & 0.50 ', end='')
-                else:
-                    print(f'0.50 & {ratio_val:.2f} ', end='')
-
-                for clf in clfs:
-                    print(
-                        f'& {subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f}) ',
-                        end='',
-                    )
-
-                print('\\\\')
-        print('\\end{tabular}\n\n')
-
-    timer.to_file(fn='case_study.csv')
-
-
-    # # Save to CSV for scatter plots
-
-    #----------------------------------
-    # results to csv
-
-    clfs = results_cv['clf'].unique()
-    scores = results_cv['metric'].unique()
-    scores_strs = ['ROC AUC', 'G mean', 'recall', 'F1']
-
-
-    for m, metric in enumerate(scores):
-        lines = ['IR, GR, ' + ', '.join(clfs)]
-
-        for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
-            for ratio_val in sorted(results_cv[ratio_type].unique()):
-                subset = results_cv[
-                    (results_cv['metric'] == metric)
-                    & (results_cv[ratio_type] == ratio_val)
-                    & (results_cv[other_ratio] == 0.5)
-                ]
-                if ratio_type == 'ir':
-                    l = f'{ratio_val:.2f}, 0.50'
-                else:
-                    l = f'0.50, {ratio_val:.2f}'
-                for clf in clfs:
-                    l += f'  ,{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
-                lines.append(l)
-
-        with open(os.path.join(DIRETORIA_EXP, f'clf_results_agg_{metric}.csv'), 'w') as f:
-            f.write('\n'.join(lines))
-
-    # fairness results to csv
-
-    clfs = fairness_results_cv['clf'].unique()
-    scores = fairness_results_cv['metric'].unique()
-    scores_strs = [
-        'Accuracy Equality Difference',
-        'Statistical Parity Difference',
-        'Equal Opportunity Difference',
-        'Predictive Equality Difference',
-        'Positive Predictive Parity Difference',
-        'Negative Predictive Parity Difference',
-    ]
-
-    for m, metric in enumerate(scores):
-        lines = ['IR, GR, ' + ', '.join(clfs)]
-
-        for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
-            for ratio_val in sorted(fairness_results_cv[ratio_type].unique()):
-                subset = fairness_results_cv[
-                    (fairness_results_cv['metric'] == metric)
-                    & (fairness_results_cv[ratio_type] == ratio_val)
-                    & (fairness_results_cv[other_ratio] == 0.5)
-                ]
-                if ratio_type == 'ir':
-                    l = f'{ratio_val:.2f}, 0.50'
-                else:
-                    l = f'0.50, {ratio_val:.2f}'
-                for clf in clfs:
-                    l += f'  ,{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
-                lines.append(l)
-
-        with open(os.path.join(DIRETORIA_EXP, f'clf_fairness_agg_{metric}.csv'), 'w') as f:
-            f.write('\n'.join(lines))
+                with open(os.path.join(DIRETORIA_EXP, f'clf_fairness_agg_{metric}.csv'), 'w') as f:
+                    f.write('\n'.join(lines))

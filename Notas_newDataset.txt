@@ -1,0 +1,26 @@
+1º colocar dataset na diretoria data
+2º copiar codigo creditCard.py
+3º mudar nas globais
+	TARGET_VALUES 
+	TARGET_NAME
+
+ver quantidade em R  ex:   table(data$age, data$y)
+
+4º alterar no main
+	sizes_samples
+	values_sens = ->[major,minor]
+	names_sens
+	DIRETORIA_EXP
+5º alterar lista de features e nome do dataset -> nao colocar target
+6º transformar os atribuitos como fiz em R com o apply lambda | ou write.table(data, file = "crimeTransformed.data", row.names = FALSE, col.names = TRUE, sep = ";", quote = FALSE)
+
+7º categoricas -> nao colocar target
+
+
+-----
+
+law
+oulad
+
+___________
+firefights e student demasiado pequenos
