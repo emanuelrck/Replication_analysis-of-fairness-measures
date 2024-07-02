@@ -1,0 +1,3 @@
+library("foreign")
+
+data <- read.arff("61_iris.arff")

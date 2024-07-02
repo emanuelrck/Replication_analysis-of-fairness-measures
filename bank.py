@@ -21,8 +21,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
-
+from complexity import Complexity
 from utils import Timer
+import csv
 SEED = 1000
 
 #_mod -> deixou de ser de 0.01 a 0.99 para 0.05 a 0.95
@@ -512,22 +513,73 @@ def boxplot(fairness_results_cv, lowerDiv, upperDiv):
             save_path = os.path.join(DIRETORIA_EXP, 'boxplot_'+ratio_type+'.png')
             plt.savefig(save_path)      
     return 
+def measures_complexity(X,y,gr,ir):
+    meta = [0] * len(X[0])
+    complexity = Complexity(X,y,meta,"default")
+    metrics = [[gr,ir],
+        complexity.F1(),
+        complexity.F1v(),
+        complexity.F2(),
+        complexity.F3(),
+        complexity.F4(),
+        complexity.R_value(),
+        complexity.D3_value(),
+        complexity.CM(),
+        complexity.kDN(),
+        complexity.T1(),
+        complexity.DBC(),
+        complexity.N1(),
+        complexity.N2(),
+        complexity.N3(),
+        complexity.N4(),
+        complexity.SI(),
+        complexity.LSC(),
+        complexity.input_noise(),
+        complexity.borderline(),
+        complexity.deg_overlap(),
+        complexity.ICSV(),
+        complexity.NSG(),
+        complexity.Clust(),
+        complexity.ONB()
+    ]
+    return metrics
+
+
+def write_complexity_to_file(data):
+    # Converter todos os arrays numpy para listas
+    for i in range(len(data[1])):
+        if isinstance(data[1][i], np.ndarray):
+            data[1][i] = data[1][i].tolist()
+
+    # Caminho do arquivo CSV
+    file_path = DIRETORIA_EXP+'\metricas_complexidade.csv'
+
+    # Escrever os dados no arquivo CSV
+    with open(file_path, mode='w', newline='') as file:
+        writer = csv.writer(file, delimiter=';')
+        for row in data:
+            writer.writerow(row)
+    return
 
 if __name__ == '__main__':
     seeds_split_data = [1120, 2928, 2379, 2050, 1962, 230, 825, 1781, 476, 1243, 1187, 1105, 2391, 2779, 1337, 2210, 1964, 2362, 376, 1437, 723, 485, 2033, 2815, 839, 1864, 1618, 546, 2938, 2796, 1028, 2388, 653, 264, 2489, 2531, 1778, 28, 2929, 1874, 1614, 313, 177, 1669, 2435, 1331, 2700, 1495, 140, 457]
     seeds = [2137]
     
-    #sizes_samples = [1500]
-    sizes_samples = [500]
+    sizes_samples = [1500]
+    
     values_sens = [['adult','notAdult']]
     names_sens =['age']
+
+    upperBound_boxplot = 0.8
+    lowerBound_boxplot = 0.2
+
     for i in seeds:
         SEED = i
         for j in range(len(names_sens)):
             SENSIVEL_VALUES = values_sens[j]
             SENSIVEL_NAME = names_sens[j]
             SAMPLE_SIZE = sizes_samples[j]
-            DIRETORIA_EXP = "e"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
+            DIRETORIA_EXP = "exp"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
             
 
             warnings.filterwarnings('ignore')
@@ -646,24 +698,31 @@ if __name__ == '__main__':
             ratios = [[0.5, ir] for ir in rs] + [[gr, 0.5] for gr in rs]
         
             #--------------------------------------
-            # calculations
-            """
+            # calculations 
+            
             fairness_results = []
             results = []
+            complexity_values = [["[GR,IR]","F1", "F1v", "F2", "F3", "F4", "R_value", "D3", "CM", "kDN", "T1", "DBC", "N1", "N2", "N3", "N4", "SI", "LSC", "input_noise", "borderline", "deg_overlap", "ICSV", "NSG", "Clust", "ONB"]]
             timer.start()
             
             for gr, ir in ratios:
                 print(f'GR: {gr}, IR: {ir}')
                 swap_gr, swap_ir = False, False
-                
+                c = 0
                 for split_seed in seeds_split_data:
                     df = split_data(dataset, SAMPLE_SIZE, gr, ir,split_seed)
                     X_all, y_all = preprocess(df)
+                    complexity_values.append(measures_complexity(X_all,y_all,1,1))
                     timer.checkpoint(f"gr={gr} ir={ir} data preprocessing")
-
                     for i, (traini, testi) in enumerate(holdout.split(X_all)):
                         X_train, X_test = X_all[traini], X_all[testi]
                         y_train, y_test = y_all[traini], y_all[testi]
+                        
+                        if c == 0:#tirar isto para correr 50 vezes mas demora muito tempo
+                            complexity_values.append(measures_complexity(X_test,y_test,gr,ir))
+                            c = 1
+                        
+                        
 
                         for clf, kwargs in classifiers:
                             pipe = make_pipeline(KNNImputer(), StandardScaler(), clf(**kwargs)).fit(X_train, y_train)
@@ -686,6 +745,7 @@ if __name__ == '__main__':
 
             results_cv = pd.DataFrame(results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
             fairness_results_cv = pd.DataFrame(fairness_results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
+            write_complexity_to_file(complexity_values)
 
             timer.checkpoint(f"saving results")
             timer.reset()
@@ -698,20 +758,20 @@ if __name__ == '__main__':
             with open(os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl'), 'wb') as f:
                 pickle.dump(results_cv, f)
             
-            """
+            boxplot(fairness_results_cv,lowerBound_boxplot,upperBound_boxplot)
             #-------------------usar os ficheiros pickle em vez de sempre calculos-------------------
-            fairness_file = os.path.join(DIRETORIA_EXP, 'fairness_results_cv.pkl')
-            clf_file = os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl')
+            #fairness_file = os.path.join(DIRETORIA_EXP, 'fairness_results_cv.pkl')
+            #clf_file = os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl')
         
             # Carregar os dados dos arquivos
-            with open(fairness_file, 'rb') as f:
-                fairness_results_cv = pickle.load(f)
+            #with open(fairness_file, 'rb') as f:
+            #    fairness_results_cv = pickle.load(f)
 
-            with open(clf_file, 'rb') as f:
-                results_cv = pickle.load(f)
+            #with open(clf_file, 'rb') as f:
+            #    results_cv = pickle.load(f)
             
-            boxplot(fairness_results_cv,0.2,0.8)
-            exit(0)
+            #boxplot(fairness_results_cv,0.2,0.8)
+            #exit(0)
             #------------------
 
             #plot the absolute value of fairness metrics
