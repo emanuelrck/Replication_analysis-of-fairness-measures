@@ -21,6 +21,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+import csv
+from complexity import Complexity
 
 from utils import Timer
 SEED = 1000
@@ -444,6 +446,124 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
     return fig
 
 
+def boxplot(fairness_results_cv, lowerDiv, upperDiv):
+    
+    metrics=[
+            'Accuracy Equality Difference',
+            'Statistical Parity Difference',
+            'Equal Opportunity Difference',
+            'Predictive Equality Difference',
+            'Positive Predictive Parity Difference',
+            'Negative Predictive Parity Difference',
+    ]
+    ynames=[
+            'Accuracy Equality',
+            'Statistical Parity',
+            'Equal Opportunity',
+            'Predictive Equality',
+            'Positive Predictive Parity',
+            'Negative Predictive Parity',
+    ]
+    classifiers = ['RandomForest',
+                    'DecisionTree',
+                    'GaussianNB',
+                    'LogisticRegression',
+                    'KNeighbors',
+                    'MLP',
+    ]
+    #fazer por cada classificador é descomentar
+    for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+        #for classifier in classifiers:
+            fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(15, 12))
+            #fig.suptitle(ratio_type+' '+classifier)
+            fig.suptitle(ratio_type)
+            for idx,metric in enumerate(metrics):
+                row = idx // 2  # Linha do subplot
+                col = idx % 2   # Coluna do subplot
+                subsetLower = fairness_results_cv[
+                        (fairness_results_cv['metric'] == metric)
+                        & (fairness_results_cv[ratio_type] < lowerDiv)
+                        & (fairness_results_cv[other_ratio] == 0.5)
+                        #& (fairness_results_cv['clf'] == classifier)
+                        ]
+                subsetMed = fairness_results_cv[
+                        (fairness_results_cv['metric'] == metric)
+                        & (fairness_results_cv[ratio_type] >= lowerDiv)
+                        & (fairness_results_cv[ratio_type] < upperDiv)
+                        & (fairness_results_cv[other_ratio] == 0.5)
+                        #& (fairness_results_cv['clf'] == classifier)
+                        ]
+                subsetHigh = fairness_results_cv[
+                        (fairness_results_cv['metric'] == metric)
+                        & (fairness_results_cv[ratio_type] >= upperDiv)
+                        & (fairness_results_cv[other_ratio] == 0.5)
+                        #& (fairness_results_cv['clf'] == classifier)
+                        ]
+
+                subsetLower.dropna(inplace=True)
+                subsetMed.dropna(inplace=True)
+                subsetHigh.dropna(inplace=True)
+                plot_idx = i * 2 + col + 1
+                # Criar boxplot
+                axes[row, col].boxplot([subsetLower['value'],subsetMed['value'],subsetHigh['value']])
+                axes[row, col].set_xticklabels(['[0.01,'+str(lowerDiv)+'[','['+str(lowerDiv)+','+str(upperDiv)+'[', '['+str(upperDiv)+',0.99['])
+                axes[row, col].set_ylabel(ynames[idx])
+                axes[row, col].tick_params(axis='y', size=5)
+            
+            
+            save_path = os.path.join(DIRETORIA_EXP, 'boxplot_'+ratio_type+'.png')
+            plt.savefig(save_path)      
+    return 
+def measures_complexity(X,y,gr,ir):
+    
+    meta = [0] * len(X[0])
+    complexity = Complexity(X,y,meta,"default")
+    metrics = [[gr,ir],
+        complexity.F1(),
+        complexity.F1v(),
+        complexity.F2(),
+        complexity.F3(),
+        complexity.F4(),
+        complexity.R_value(),
+        complexity.D3_value(),
+        complexity.CM(),
+        complexity.kDN(),
+        complexity.T1(),
+        complexity.DBC(),
+        complexity.N1(),
+        complexity.N2(),
+        complexity.N3(),
+        complexity.N4(),
+        complexity.SI(),
+        complexity.LSC(),
+        complexity.input_noise(),
+        complexity.borderline(),
+        complexity.deg_overlap(),
+        complexity.ICSV(),
+        complexity.NSG(),
+        complexity.Clust(),
+        complexity.ONB()
+    ]
+    return metrics
+
+
+def write_complexity_to_file(data):
+    # Converter todos os arrays numpy para listas
+    for i in range(len(data[1])):
+        if isinstance(data[1][i], np.ndarray):
+            data[1][i] = data[1][i].tolist()
+
+    # Caminho do arquivo CSV
+    file_path = DIRETORIA_EXP+'\metricas_complexidade.csv'
+
+    # Escrever os dados no arquivo CSV
+    with open(file_path, mode='w', newline='') as file:
+        writer = csv.writer(file, delimiter=';')
+        for row in data:
+            writer.writerow(row)
+    return
+
+
 if __name__ == '__main__':
     seeds_split_data = [1120, 2928, 2379, 2050, 1962, 230, 825, 1781, 476, 1243, 1187, 1105, 2391, 2779, 1337, 2210, 1964, 2362, 376, 1437, 723, 485, 2033, 2815, 839, 1864, 1618, 546, 2938, 2796, 1028, 2388, 653, 264, 2489, 2531, 1778, 28, 2929, 1874, 1614, 313, 177, 1669, 2435, 1331, 2700, 1495, 140, 457]
     #seeds = [1000, 2000, 2137]
@@ -452,7 +572,8 @@ if __name__ == '__main__':
     sizes_samples = [102]
     values_sens = [['low','high']]
     names_sens =['race']
-
+    upperBound_boxplot = 0.8
+    lowerBound_boxplot = 0.2
  
     for i in seeds:
         SEED = i
@@ -460,7 +581,7 @@ if __name__ == '__main__':
             SENSIVEL_VALUES = values_sens[j]
             SENSIVEL_NAME = names_sens[j]
             SAMPLE_SIZE = sizes_samples[j]
-            DIRETORIA_EXP = "exp_crime_differentSplit_seed"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
+            DIRETORIA_EXP = "crime_seed"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
             
 
             warnings.filterwarnings('ignore')
@@ -599,11 +720,12 @@ if __name__ == '__main__':
             fairness_results = []
             results = []
             timer.start()
+            complexity_values = [["[GR,IR]","F1", "F1v", "F2", "F3", "F4", "R_value", "D3", "CM", "kDN", "T1", "DBC", "N1", "N2", "N3", "N4", "SI", "LSC", "input_noise", "borderline", "deg_overlap", "ICSV", "NSG", "Clust", "ONB"]]
 
             for gr, ir in ratios:
                 print(f'GR: {gr}, IR: {ir}')
                 swap_gr, swap_ir = False, False
-                
+                c = 0
                 for split_seed in seeds_split_data:
                     df = split_data(dataset, SAMPLE_SIZE, gr, ir,split_seed)
                     X_all, y_all = preprocess(df)
@@ -612,6 +734,11 @@ if __name__ == '__main__':
                     for i, (traini, testi) in enumerate(holdout.split(X_all)):
                         X_train, X_test = X_all[traini], X_all[testi]
                         y_train, y_test = y_all[traini], y_all[testi]
+
+                        if c == 0:#tirar isto para correr 50 vezes mas demora muito tempo
+                            complexity_values.append(measures_complexity(X_test,y_test,gr,ir))
+                            c = 1
+                            
 
                         for clf, kwargs in classifiers:
                             pipe = make_pipeline(KNNImputer(), StandardScaler(), clf(**kwargs)).fit(X_train, y_train)
@@ -634,6 +761,8 @@ if __name__ == '__main__':
 
             results_cv = pd.DataFrame(results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
             fairness_results_cv = pd.DataFrame(fairness_results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
+            write_complexity_to_file(complexity_values)
+            boxplot(fairness_results_cv,lowerBound_boxplot,upperBound_boxplot)
 
             timer.checkpoint(f"saving results")
             timer.reset()
@@ -794,7 +923,7 @@ if __name__ == '__main__':
             ]
 
             for m, metric in enumerate(scores):
-                lines = ['IR, GR, ' + ', '.join(clfs)]
+                lines = ['IR, GR; ' + ';'.join(clfs)]
 
                 for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
                     for ratio_val in sorted(fairness_results_cv[ratio_type].unique()):
@@ -808,7 +937,7 @@ if __name__ == '__main__':
                         else:
                             l = f'0.50, {ratio_val:.2f}'
                         for clf in clfs:
-                            l += f'  ,{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
+                            l += f'  ;{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
                         lines.append(l)
 
                 with open(os.path.join(DIRETORIA_EXP, f'clf_fairness_agg_{metric}.csv'), 'w') as f:

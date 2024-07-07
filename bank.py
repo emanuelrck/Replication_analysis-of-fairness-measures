@@ -699,6 +699,7 @@ if __name__ == '__main__':
         
             #--------------------------------------
             # calculations 
+            #complexity_values.append(measures_complexity(X_all,y_all,1,1))
             
             fairness_results = []
             results = []
@@ -712,7 +713,6 @@ if __name__ == '__main__':
                 for split_seed in seeds_split_data:
                     df = split_data(dataset, SAMPLE_SIZE, gr, ir,split_seed)
                     X_all, y_all = preprocess(df)
-                    complexity_values.append(measures_complexity(X_all,y_all,1,1))
                     timer.checkpoint(f"gr={gr} ir={ir} data preprocessing")
                     for i, (traini, testi) in enumerate(holdout.split(X_all)):
                         X_train, X_test = X_all[traini], X_all[testi]
