@@ -52,19 +52,15 @@ class Complexity:
       
         self.y=np.array(y)
         classes=np.unique(self.y)
-
         self.classes = classes
         self.meta=meta
         self.dist_matrix,self.unnorm_dist_matrix = self.__calculate_distance_matrix(self.X,distance_func=distance_func)
         
         
-
         
         self.class_count = self.__count_class_instances()
 
-
         self.class_inxs = self.__get_class_inxs()
-
 
         self.sphere_inst_count_T1 = []
         self.sphere_tuple_ONB = []

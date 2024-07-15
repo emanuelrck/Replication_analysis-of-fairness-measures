@@ -444,7 +444,200 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
     plt.tight_layout()
     return fig
 
-def boxplot(fairness_results_cv, lowerDiv, upperDiv):
+def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ratio_type): 
+    
+    metrics=[
+                        'Accuracy Equality Difference',
+                        'Statistical Parity Difference',
+                        'Equal Opportunity Difference',
+                        'Predictive Equality Difference',
+                        'Positive Predictive Parity Difference',
+                        'Negative Predictive Parity Difference',
+                    ]
+    fill='std' 
+    ylim=(-0.9, 0.9)
+    fig, axs = plt.subplots((len(metrics) - 1) // 2 + 1, 2, sharex=True, sharey=True, figsize=(12, 12))
+
+
+    
+    ratios = sorted(fairness[ratio_type].unique())
+    complexity_values_int = []
+    copy_complexity_values_str = []
+    for i in complexity_values:
+        complexity_values_int.append(float(i))
+        copy_complexity_values_str.append(i)
+    combined = list(zip(complexity_values_int, copy_complexity_values_str, ratios))
+    # Ordenando o array combinado pelo primeiro elemento de cada tupla (array1)
+    sorted_combined = sorted(combined, key=lambda x: x[0])
+    # Descompactando os arrays ordenados
+    complexity_values_int, copy_complexity_values_str, ratios = zip(*sorted_combined)
+    # Convertendo de volta para listas (opcional)
+    complexity_values_int = list(complexity_values_int)
+    copy_complexity_values_str = list(copy_complexity_values_str)
+    ratios = list(ratios)
+        
+    for i, metric in enumerate(metrics):
+        axs[i // 2, i % 2].set_ylabel(metric.replace('Difference', ''))
+
+        metrics = fairness['metric'].unique()
+        clfs = fairness['clf'].unique()
+        
+       
+        other_ratio = 'gr' if ratio_type == 'ir' else 'ir'
+        mean, stdev, err = {}, {}, {}
+
+        for r in ratios:
+            for clf in clfs:
+                subset = fairness[
+                    (fairness[ratio_type] == r)
+                    & (fairness['clf'] == clf)
+                    & (fairness[other_ratio] == 0.5)
+                    & (fairness['metric'] == metric)
+                    & fairness['value'].notna()
+                ]
+                mean[(r, clf)] = subset['value'].mean(skipna=True)
+                stdev[(r, clf)] = subset['value'].std(skipna=True)
+                err[(r, clf)] = scipy.stats.sem(subset['value'], nan_policy='omit')
+
+        axs[i // 2, i % 2].axhline(0, color='black', linestyle='--', alpha=0.9, lw=1)
+
+        for j, clf in enumerate(clfs):
+            axs[i // 2, i % 2].plot(
+                complexity_values_int, [mean[(r, clf)] for r in ratios], label=clf, color=colours[j], marker='o', lw=1, alpha=0.85
+            )
+            if fill == 'err':
+                axs[i // 2, i % 2].fill_between(
+                    complexity_values_int,
+                    [mean[(r, clf)] - err[(r, clf)] for r in ratios],
+                    [mean[(r, clf)] + err[(r, clf)] for r in ratios],
+                    alpha=0.15,
+                    color=colours[j],
+                )
+            elif fill == 'std':
+                axs[i // 2, i % 2].fill_between(
+                    complexity_values_int,
+                    [mean[(r, clf)] - stdev[(r, clf)] for r in ratios],
+                    [mean[(r, clf)] + stdev[(r, clf)] for r in ratios],
+                    alpha=0.15,
+                    color=colours[j],
+                )
+
+        
+
+       
+
+
+        axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
+        axs[i // 2, i % 2].set_xticks(complexity_values_int, complexity_values, rotation=90)
+        axs[i // 2, i % 2].set_xlim(min(complexity_values_int), max(complexity_values_int))
+        if i // 2 == 2:
+            axs[i // 2, i % 2].set_xlabel("variar_"+ratio_type+"_metrica_"+ name_complexity_metric)
+        if ylim:
+            axs[i // 2, i % 2].set_ylim(*ylim)
+
+    axs[0, 0].legend(loc=1, ncols=3)
+    plt.tight_layout()
+    fig.savefig(os.path.join(plots_dir, f'complexityPlot_{ratio_type}.png'))
+    
+    plt.close()
+    return 
+
+
+
+def boxplot(fairness_results_cv, lowerDiv1, lowerDiv2, upperDiv1, upperDiv2):
+    
+    metrics = [
+        'Accuracy Equality Difference',
+        'Statistical Parity Difference',
+        'Equal Opportunity Difference',
+        'Predictive Equality Difference',
+        'Positive Predictive Parity Difference',
+        'Negative Predictive Parity Difference',
+    ]
+    ynames = [
+        'Accuracy Equality',
+        'Statistical Parity',
+        'Equal Opportunity',
+        'Predictive Equality',
+        'Positive Predictive Parity',
+        'Negative Predictive Parity',
+    ]
+    classifiers = ['RandomForest',
+                   'DecisionTree',
+                   'GaussianNB',
+                   'LogisticRegression',
+                   'KNeighbors',
+                   'MLP',
+    ]
+    
+    for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(15, 12))
+        fig.suptitle(ratio_type)
+        for idx, metric in enumerate(metrics):
+            row = idx // 2  # Linha do subplot
+            col = idx % 2   # Coluna do subplot
+            
+            subset1 = fairness_results_cv[
+                (fairness_results_cv['metric'] == metric) &
+                (fairness_results_cv[ratio_type] < lowerDiv1) &
+                (fairness_results_cv[other_ratio] == 0.5)
+            ]
+            subset2 = fairness_results_cv[
+                (fairness_results_cv['metric'] == metric) &
+                (fairness_results_cv[ratio_type] >= lowerDiv1) &
+                (fairness_results_cv[ratio_type] < lowerDiv2) &
+                (fairness_results_cv[other_ratio] == 0.5)
+            ]
+            subset3 = fairness_results_cv[
+                (fairness_results_cv['metric'] == metric) &
+                (fairness_results_cv[ratio_type] >= lowerDiv2) &
+                (fairness_results_cv[ratio_type] < upperDiv1) &
+                (fairness_results_cv[other_ratio] == 0.5)
+            ]
+            subset4 = fairness_results_cv[
+                (fairness_results_cv['metric'] == metric) &
+                (fairness_results_cv[ratio_type] >= upperDiv1) &
+                (fairness_results_cv[ratio_type] < upperDiv2) &
+                (fairness_results_cv[other_ratio] == 0.5)
+            ]
+            subset5 = fairness_results_cv[
+                (fairness_results_cv['metric'] == metric) &
+                (fairness_results_cv[ratio_type] >= upperDiv2) &
+                (fairness_results_cv[other_ratio] == 0.5)
+            ]
+            
+            subset1.dropna(inplace=True)
+            subset2.dropna(inplace=True)
+            subset3.dropna(inplace=True)
+            subset4.dropna(inplace=True)
+            subset5.dropna(inplace=True)
+            
+            data = [subset1['value'], subset2['value'], subset3['value'], subset4['value'], subset5['value']]
+            ax = axes[row, col]
+            bp = ax.boxplot(data)
+            ax.set_xticklabels(['[0.01,'+str(lowerDiv1)+'[', 
+                                '['+str(lowerDiv1)+','+str(lowerDiv2)+'[', 
+                                '['+str(lowerDiv2)+','+str(upperDiv1)+'[', 
+                                '['+str(upperDiv1)+','+str(upperDiv2)+'[', 
+                                '['+str(upperDiv2)+',0.99['])
+            ax.set_ylabel(ynames[idx])
+            ax.tick_params(axis='y', size=5)
+            
+            # Adicionar anotações para mediana e quartis
+            for i, subset in enumerate([subset1, subset2, subset3, subset4, subset5]):
+                if not subset['value'].empty:
+                    median = np.median(subset['value'])
+                    q1 = np.percentile(subset['value'], 25)
+                    q3 = np.percentile(subset['value'], 75)
+                    ax.text(i + 1, ax.get_ylim()[0], f'Mediana: {median:.2f}', ha='center', va='bottom', fontsize=6, color='black')
+                    ax.text(i + 1, ax.get_ylim()[0] + 0.05 * (ax.get_ylim()[1] - ax.get_ylim()[0]), f'Q1: {q1:.2f}', ha='center', va='bottom', fontsize=6, color='blue')
+                    ax.text(i + 1, ax.get_ylim()[0] + 0.1 * (ax.get_ylim()[1] - ax.get_ylim()[0]), f'Q3: {q3:.2f}', ha='center', va='bottom', fontsize=6, color='red')
+        
+        save_path = os.path.join(DIRETORIA_EXP, 'boxplot_'+ratio_type+'.png')
+        plt.savefig(save_path)      
+    return
+
+
     
     metrics=[
             'Accuracy Equality Difference',
@@ -568,8 +761,11 @@ if __name__ == '__main__':
     seeds_split_data = [1120, 2928, 2379, 2050, 1962, 230, 825, 1781, 476, 1243, 1187, 1105, 2391, 2779, 1337, 2210, 1964, 2362, 376, 1437, 723, 485, 2033, 2815, 839, 1864, 1618, 546, 2938, 2796, 1028, 2388, 653, 264, 2489, 2531, 1778, 28, 2929, 1874, 1614, 313, 177, 1669, 2435, 1331, 2700, 1495, 140, 457]
     seeds = [2137]
     sizes_samples = [1500,5000]
-    upperBound_boxplot = 0.8
-    lowerBound_boxplot = 0.2
+    firstBound_boxplot = 0.2
+    secondBound_boxplot = 0.4
+    thirdBound_boxplot = 0.6
+    fourthBound_boxplot = 0.8
+    complexityMetricIndex = 1
     values_sens = [['adult','notAdult'],[2, 1]]
     names_sens =['AGE','SEX']
     for i in seeds:
@@ -721,7 +917,10 @@ if __name__ == '__main__':
             complexity_values = [["[GR,IR]","F1", "F1v", "F2", "F3", "F4", "R_value", "D3", "CM", "kDN", "T1", "DBC", "N1", "N2", "N3", "N4", "SI", "LSC", "input_noise", "borderline", "deg_overlap", "ICSV", "NSG", "Clust", "ONB"]]
 
             timer.start()
-
+            #X_all, y_all = preprocess(dataset)
+            #complexity_values.append(measures_complexity( X_all, y_all,1,1))
+            #write_complexity_to_file(complexity_values)
+            #exit(0)
             for gr, ir in ratios:
                 print(f'GR: {gr}, IR: {ir}')
                 swap_gr, swap_ir = False, False
@@ -761,10 +960,33 @@ if __name__ == '__main__':
             results_cv = pd.DataFrame(results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
             fairness_results_cv = pd.DataFrame(fairness_results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
             write_complexity_to_file(complexity_values)
-            boxplot(fairness_results_cv,lowerBound_boxplot,upperBound_boxplot)
+            boxplot(fairness_results_cv,firstBound_boxplot,secondBound_boxplot,thirdBound_boxplot,fourthBound_boxplot)
 
             timer.checkpoint(f"saving results")
             timer.reset()
+            ir_metric_values = []
+            gr_metric_values = []
+            n = 0
+     
+            for i in range(1, len(complexity_values)):
+                if str(complexity_values[i][0][0]) == "0.5":
+                    if str(complexity_values[i][0][1]) == "0.5":
+                        if n == 0:
+                            n+=1
+                            ir_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+                        else:
+                            gr_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+                    else:
+                        ir_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+                else:
+                    gr_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+    
+           
+
+            plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], ir_metric_values,"ir",)
+            
+            plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], gr_metric_values,"gr")
+            
             #----------------------------------
             # # pickle the results
 
