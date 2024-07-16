@@ -537,7 +537,7 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
 
     axs[0, 0].legend(loc=1, ncols=3)
     plt.tight_layout()
-    fig.savefig(os.path.join(plots_dir, f'complexityPlot_{ratio_type}.png'))
+    fig.savefig(os.path.join(plots_dir, f'complexityPlot_{ratio_type}_metric_{name_complexity_metric}.png'))
     
     plt.close()
     return 
@@ -719,7 +719,7 @@ def measures_complexity(X,y,gr,ir):
         complexity.D3_value(),
         complexity.CM(),
         complexity.kDN(),
-        complexity.T1(),
+        [complexity.T1()],
         complexity.DBC(),
         complexity.N1(),
         complexity.N2(),
@@ -728,12 +728,12 @@ def measures_complexity(X,y,gr,ir):
         complexity.SI(),
         complexity.LSC(),
         complexity.input_noise(),
-        complexity.borderline(),
+        [complexity.borderline()],
         complexity.deg_overlap(),
         complexity.ICSV(),
         complexity.NSG(),
         complexity.Clust(),
-        complexity.ONB()
+        [complexity.ONB()]
     ]
     return metrics
 
@@ -767,7 +767,7 @@ if __name__ == '__main__':
     secondBound_boxplot = 0.4
     thirdBound_boxplot = 0.6
     fourthBound_boxplot = 0.8
-    complexityMetricIndex = 1
+    complexity_metrics = [6,10,19,24]
  
     for i in seeds:
         SEED = i
@@ -942,28 +942,30 @@ if __name__ == '__main__':
 
             timer.checkpoint(f"saving results")
             timer.reset()
-            ir_metric_values = []
-            gr_metric_values = []
-            n = 0
-     
-            for i in range(1, len(complexity_values)):
-                if str(complexity_values[i][0][0]) == "0.5":
-                    if str(complexity_values[i][0][1]) == "0.5":
-                        if n == 0:
-                            n+=1
-                            ir_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+            for complexityMetricIndex in complexity_metrics:
+                ir_metric_values = []
+                gr_metric_values = []
+                n = 0
+        
+                for i in range(1, len(complexity_values)):
+                    if str(complexity_values[i][0][0]) == "0.5":
+                        if str(complexity_values[i][0][1]) == "0.5":
+                            if n == 0:
+                                n+=1
+                                ir_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+                            else:
+                                gr_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
                         else:
-                            gr_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+                            ir_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
                     else:
-                        ir_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
-                else:
-                    gr_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
-    
-           
-
-            plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], ir_metric_values,"ir",)
+                        gr_metric_values.append(str(complexity_values[i][complexityMetricIndex][0]))
+        
             
-            plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], gr_metric_values,"gr")
+                
+                plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], ir_metric_values,"ir",)
+                    
+                plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], gr_metric_values,"gr")
+                
             
             #----------------------------------
             # # pickle the results
