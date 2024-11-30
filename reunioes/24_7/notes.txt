@@ -1,0 +1,35 @@
+adult race parece notar-se mas intervalo é de cerca de 0.1; T1 intervalo de valores muito baixo-> maior intervalo de valores IR do que em GR
+
+creditcard age
+________________________________
+
+adult race t1 interessante pq quando tenho t1 alta é como se em subgrupos rodiasse a classe maioritaria e a classe minoritaria, é mais complexo quanto mais  froteiras traçar para fazer subgrupos
+
+fairness degrada quando existem mais subgrupos nos dados (se perfect fairness é 0)
+
+e estamos à procura destas situaçoes onde verificamos mais estavel
+t1 pode ser ponto de partida para dizer que existem metricas de complexidade que se assemelham mais a metricas de fairness do que outras
+
+no T1 quando nao tenho complexidade tenho fair, depois quando chega a x complexidade é fair e depois quando complexidade é demasiado alta 
+pode ser interessante olhar para a performance e para a complexidade
+(quando é muito complexo pode ser fair pq é mau para ambas as classes)
+
+
+! tbm é interessante ver que alterar IR ou GR irá aumentar ou diminuir range de complexidade
+
+o trabaho pode ser mais interessante para dizer o que é interessante de fazer e o que esta mal; levantar as questoes
+-----
+ se existir outros em que esta no meio colocar noutra pasta para depois tentar perceber pq é fair e depois volta a ser unfair 
+
+(separar os maiores e depois mais estavel das menores mais estavel ou no inicio ou no fim)
+fazer para todas as metricas de complexidade quais é que verificam o que t1 verifica inicio mais fair e mais complexo menos fair 
+
+!!gr ser alto ou baixo nao implica que complexidade seja baixa ou alta
+
+num excel colocar a associação dos valores de complexidade das metricas de fairness do valor de GR; do valor de IR; range do max-min de complexidade e a perfomance (!!! ver os valores de perfomance quando passa de fair para unfair) ter o excel ordenado por complexidade 
+
+--> ver as metricas que seguem esta tendencia
+
+----------
+1º ver das imagens e spera-las por maior no inicio, no meio ou no fim
+2º para cada uma delas fazer excel em que coloco essa metrica fairness; f1_score e gr|IR e valor de max-min da complexidade assinalar as zonas em que muda de fair para unfair

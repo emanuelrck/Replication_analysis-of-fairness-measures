@@ -527,7 +527,7 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
 
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
-        axs[i // 2, i % 2].set_xticks(complexity_values_int, complexity_values, rotation=90)
+        axs[i // 2, i % 2].set_xticks(complexity_values_int, copy_complexity_values_str, rotation=90)
         axs[i // 2, i % 2].set_xlim(min(complexity_values_int), max(complexity_values_int))
         if i // 2 == 2:
             axs[i // 2, i % 2].set_xlabel("variar_"+ratio_type+"_metrica_"+ name_complexity_metric)

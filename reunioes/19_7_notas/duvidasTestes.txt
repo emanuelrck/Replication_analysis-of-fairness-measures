@@ -1,0 +1,18 @@
+testar com os dados dos classificadores todos juntos ou por metrica de fairness por classificador fazer um teste (testei com eles todos juntos e separados e o p value é sempre zero ou um numero muito proximo de zero (ex: p-value: 9.3192268955038e-167)
+
+para ver a simetria podia ser com teste para ver se existe diferença significativa ente GR = 0.5 IR = 0.1 e GR = 0.5 e IR = 0.9; se existir nao sao simetricos e o mesmo para os varios valores (tbm diz que existe sempre diff significativa) -> outra forma seria fazer comparaçao direta de medias e desvios padrao dos intervalos à mesma distancia do centro (multiplicava os erros de cada uma e se esse valor inferior a x entao considero simetrico -> como faria as contas?)
+
+-> se for imutavel tem de ser simetrico; se for simetrico pode nao ser imutavel
+
+(talvez ser estatisticamente igual seja demasiado drastico para assumir que é imutavel; uma opçao é definir um intervalo de valores sobre o qual os valores podem variar -> verificar se os valores estao todos dentro de um limiar exemplo (se for calcular o intervalo de confiança a 95% e verifico se o erro esta abaixo de x)
+
+para fairness simetria seria ver o mesmo que na gr simetria mas em vez de ser no conjunto todo seria em cada subconjunto e o eixo simetria seria o zero; depois soma dos erros cumulativos teria de estar abaixo de x valor
+
+____________________________________________________________________
+
+
+confirmar se os valores de complexidade esta de facto ordenados e ver se é apenas a legenda que esta errada
+
+quarta as 10h30
+
+nao vale a pena estar a pensar nas metricas deterministicas para tentar validar

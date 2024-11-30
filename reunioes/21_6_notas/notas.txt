@@ -1,0 +1,14 @@
+tirar as experiencias com a modificaçao de colocar o split dos dados dentro do ciclo de holdout
+
+ter as 50 seeds diferentes e passar esses valores quando faço o split 
+
+ver mais datasets possiveis e ver se as hipoteses deles se mantem 
+
+-----------------
+alterei o set up em vez de fazer 50 diferentes holdouts no 
+
+___________
+code changes 
+1 holdout
+split dos dados 50 vezes passando uma seed aleatoria nos paramentros (alterar split data)
+tab ate antes de results_cv

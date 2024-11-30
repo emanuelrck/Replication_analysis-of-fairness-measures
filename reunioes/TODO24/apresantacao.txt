@@ -1,0 +1,15 @@
+defenir para o contexto o que é fair e escolher as metricas com base nisso 
+
+direção seria pegar num artigo stepanoski tem esta conclusao mas longe da realidade pq esta inviasada. pq so pode ir a um custo pequeno (replicar o trabalho que ele fez mas setup mais completo e levantando as hipoteses que ele levanta e levantando outro tipo de hipoteses como se justifica)
+
+para ja o melhor seria replicar o que ele fez 
+
+fazer uma abordagem mais empirica às ideias que foram lançadas
+-----
+numa outra fase evoluir esta ideia para lidar com imbalance e fairness
+
+--- aquilo que fui fazendo dizer que foi para ganhar sensibilidade do assunto e agora evoluimos a ideia para isto 
+
+------
+tentar replicar e depois tentar fazer.
+olhar para o artigo e ver o que eles fazem com 2 ou 3 datasets podemos fazer depois de tudo e o que fazem com algumas metricas podemos fazer de todas de uma biblioteca e escolher 1 ou 2 class para correr as experiencias e depois pegar nas hipoteses que eles tem e tentar velas com este setup experimental ( IR-> maior) -> mais metricas mais datasets.  

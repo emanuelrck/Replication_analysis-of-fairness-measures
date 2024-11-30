@@ -1,0 +1,20 @@
+escrever estes problemas que encontrei num word 
+na parte das combinaçoes o que fazer seria esquecer a matriz de confusao deles pq torna a abordagem muito limitada e tem muitas matrizes de confusao que nunca vao aparecer enato vamos usar os classificadores mais utilizados 
+e usar os 3 classificadores que usamos random forest, xgboost, svm e obter a matriz de confusao desses classificadores com maior conjunto de dados.
+
+com dataset todos e criar subdatasets que estou a balancear os dados (tirar os valores com o dataset todo ou com os subdatasets como eles fizeram-> ao estar com ele todo ira ser mais realista, ter so um subdataset estao a limitar o scope e não ira representar a realidade)
+
+ir a um atributo de cada vez ao inicio e depois no final tentar ir em combinaçao (po 
+sexo 1100 depois raça 600, se repetir os 600 varia vezes dos 1100 vou ter as amostras representadas para ter representação -> ir so ao sexo eles muito provavelmente iram ter maioritariamente brancos e poucos de outras raças
+
+variar umas 10 seeds (em vez de usar so 1 seed fixa, pode haver sorte na seed)
+
+o que puder fazer como eles fazer entao 67% treino e 33% teste 
+___________
+Começar a estruturar um paper e 
+adicionar novos conteudos no estado da arte, ver da metodologia, sacar template i3e
+https://journals.ieeeauthorcenter.ieee.org/create-your-ieee-journal-article/authoring-tools-and-templates/tools-for-ieee-authors/ieee-article-templates/
+
+--------------
+para a semana tenho folga e falamos daqui a 15 
+com experiencias concluidas em alguns datasets 

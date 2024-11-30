@@ -1,0 +1,16 @@
+coisas que costumam fazer é testar com varios classificadores quando têm um algortimo de oversampling ou nova metrica de fairness (pode ser interessante testar com outros para alem do RL) e pode ser interessante comparar este oversampling com outros mecanismos de oversampling do estado de arte 7
+
+
+ideia do stor replicar o trabalho que diz future work 
+
+ver pelos gits se usaram tudo ou select pelos sensiveis no caso do fawos 
+
+tentar obter o fairsmote para aplicar com clusters ou mesmo com a divisao que eles usam experimentar com estes datasets e comparar resultados
+
+ver no caso de multisensitive (varios protegidos) se ja ha alguma coisa nessa area
+
+analisar os resultados dos datasets semelhantes (se é melhor com cluster
+
+
+-----
+fair smote em cluster e FAwos em clusters para tentar comparar com o nosso e depois tentar ver como compara com a abordagem deles

@@ -1,0 +1,7 @@
+usam apenas uma seed 2137
+
+usam apenas um atributo sensivel e ignoram os outros; caso do case study apenas olham para o sexo ignorando a raça 
+
+apenas fazem com uma porçao do dataset que contem de tamanho 1100
+
+mudei a seed para 1000 e deu o erro: Only one class present in y_true. ROC AUC score is not defined in that case.

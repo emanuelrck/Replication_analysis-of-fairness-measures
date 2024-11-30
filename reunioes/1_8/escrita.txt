@@ -1,0 +1,25 @@
+levantar hipoteses em vez de dizer que isto acontece
+
+
+sei que tenho os IR e GR e desempenho de n classificadores e o desempenho de metricas complexidade e tenho as metricas de grupo fairness
+
+-------------
+!! o criterio é a fairness e vou tentar extrapular com cada um dos outros de forma individualizade-> exemplo valor de GR e IR catapultam valor de fairness
+
+depois de ver individualizado tentar juntar com as metricas de complexidade para conseguir antever a fairness
+
+baseline é nao faço nada e tenho as metricas de fairness obtidas e posso ver o IR e GR do original
+
+depois comparo isso com as variaçoes de IR e GR-> explicar como isso altera o dataset e como isso impacta o dataset
+
+tentar fazer pontes e conexoes que ache que façam sentido |ex: quando IR grande .... (ver se existe similaridade no que estou a dizer ex gr e IR o que mudam de facto)
+
+objetivo é verificar como as coisas se modificam com as alteraçoes
+ 
+tentar correlacionar as questoes
+
+tentar ir com 1,2 ou 3 metricas de complexidade por familia e 
+
+queremos completar a analise de GR e IR com as medidas de complexidade; como essas alteraçoes influenciam a complexidade do dataset que estou a treinar 
+
+depois se desemenho dos classificadores alterar colocar isso ao barulho; exemplo quando o desepenho sobe a fairness sob ou alguma relaçao assim

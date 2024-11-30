@@ -1,0 +1,6 @@
+stalog
+creditCard
+bank
+law
+compas
+crime

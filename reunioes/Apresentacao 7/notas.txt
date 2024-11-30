@@ -1,0 +1,38 @@
+Observaçoes trabalho realizado
+
+fiz para o dataset law-> prever se passa ou nao no exame BAR (atributos sensiveis sex e race) e para  Diabetes -> prever se passiente é readmitido em menos de 30 dias (atributos sensiveis sex, race e age)
+
+so foram usados 2 clusters porque se fosse com 3 um dos clusters ficava com muito poucos elementos (na casa das unidades/dezenas)
+
+no caso de LAW apenas negative predictive piorou outros melhoraram-> experimentei fazer com a soma dos resultados dos dois clusters para o total ou tratar os dados como se fossem so 1 cluster para comparar e obteve melhores resultados quando trata com 2 clusters por uma ligeira diferenla
+
+no caso de diabetes excepto exceçao de age predictive e negative predictive pioraram o resto melhorou -> experimentei alterar o atributo que considerava de base no sexo para femenino visto existirem mais exemplos femeninos do que masculinos e o femenino obteve melhores resultados ou seja considerando que as mulheres sao tratadas de forma justa, quao justo é o tratamento dos homens é uma melhor comparação do que considerando que o tratamento dos homens é justo quao justo é o tratamento das mulheres   ex H=1 M=2 1/2 esta mais proximo de 1 do que 2/1 
+
+tambem experimentei fazer a média e o desvio padrao de 30 amostras e existe alguma variaçao mas curta-> vem do facto de estar a treinar um modelo com os dados e em diferentes corridas irei ter diferentes modelos mas os dados utilizados na construçao do modelo sao mantidos constantes
+
+_------
+
+
+tentar perceber o pq daquelas piorarem e tentar ver como melhoralas visto ao emablace que existe
+
+
+isso pode ser uma contribuiçao
+
+!repetir as experiencias para os todos datasets  e ver se continua a ter o mesmo comportamento (com e sem clusters)
+
+1º subrepresentaçao provoca o imbalace e melhorando a representaçao conseguimos melhorar o balance
+
+2º as metricas nao dao representaçao do que é fair ou not fair devido ao embalace
+
+3º garantir que as outras nao estao tbm invesadas para os restantes valores 
+
+para saber quantos clusters ver algo que se chama siluete: https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html-> para ter cluster coesos (ou cluster evaluation coefition index) 
+
+
+
+perceber concretamente pq so 2 sofrem negativamente com o que é feito
+
+
+
+tentar usar uma IA e perguntar quantos grupos ele identifica passando-lhe o excel para confirmar o numero de clusters
+Cluster evaluation coefficient / index

@@ -1,0 +1,12 @@
+1-adult race
+2-adult sex
+3-bank age
+4-compas age
+5-compas race
+6- compas sex
+7- credit card age
+8-credit card sex
+9-law sex
+10-law race
+11-stalog age
+12-stalog sex

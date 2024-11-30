@@ -1,0 +1,33 @@
+se for para fazer como eles fazem em que pego em datasets com diferentes porporçoes dos atributos, para ser comparavel entre os valores estou sempre limitado ao pior cenário.
+exemplo
+quero ver todas as combinaçoes de 0.95 ate 0.05 IR com  GR = 0.5
+ex:
+IR = 0.1 and GR = 0.5, there were 55 poor women, 55 rich women, 495 poor men, and 495 rich men in this subset
+
+neste caso o numero que limita sao 1112 mulheres ricas
+GR -> ve pelo target
+IR -> ve pela sexo
+
+1100 mulheres ricas 1100 mulheres pobres 57 homens ricos e 57 homens pobres
+GR ->0.5 
+IR -> 0.95 
+
+no  max 2 314 pq mudei as escalas ate 0.95 por causa do erro que deu (tentei com 2300)
+
+mas so de aumentar para 2300 ja tem um aumento consideravel no tempo de execução
+----------------
+no caso da raça limitado a 669 nao brancos ricos
+-------------
+se quiser fazer com mais do que um atributo em simultaneo ? -> para usar a abordagem deles escolho uma dessas priveligiadas (ex homem branco) e depois as restantes amostras que iam ser do outro tipo sao divididas pelas outras 3 combinações?
+
+------------
+
+
+
+
+________________________
+varios datasets + 1 ou 2 e para os diferentes atributos sensiveis com seeds para ver se conclusao sao as mesmas coisas; 3 ou 4 seeds se houver algum que seja difernete ( 3 ou 4 validos com resultos)
+
+
+ver o que alterou com os datasets diferentes ou se é muito especifico do dataset de case study 
+

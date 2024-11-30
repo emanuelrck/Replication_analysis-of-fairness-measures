@@ -1,0 +1,38 @@
+tese-> estou inserido num projeto e uma das tarefas é fazer ferramenta de model audity que dado conjunto de dados chegar à melhor performance do classificador-> ferramenta tem de deixar escolher algoritmos e parametros-> objetivo é melhorar modelo (perceber onde esta a falhar e como esta a falhar) 
+
+------------------------
+
+os casos do check ja nao posso por se existir pelo menos 1 que nao verificque 
+
+
+para fazer uma tabela de forma mais deterministica
+->para cada IR tenho média e desvio padrão; para cada dataset e para cada IR ter plot do valor e do desvio padrão (media de q?)
+
+-> agarrar nos IR e GR e fazer intervalos (ex [0.01 0.2] very low .... e depois por cada dataset por cada metrica e para cada classificador ira ter um determinado valor de variancia (pegar em gama de IR dos varios datasets das varias variaveis sensiveis e fazer por intervalos) 
+-----> para cada intervalo tenho uma valor de média e desvio padrao e depois teria um boxplot nesse intervalo -> depois podemos ver se for invariante a mediana do boxplot esta mais ou menos alinhado. Depois a analise dos valores pode ser a olhometro ou por analise estatistica dos valores da variancia dos boxplots.
+
+(questão das medias-> junto os dados dos classificadores diferentes ou faço por classificador?)
+_______________________________
+outra vertente a explorar é que para escolher as metricas de fairness nao devemos ter em conta so a variancia de IR e GR mas existem outros fatores -> se quisermos dizer este tipo de dataset é bom com estas metricas nao podemos olhar apenas para estas variancias-> temos de olhar ou para as medidas de complexidade ou para nao analisar grupo sensivel individualmente ---> o link direto entre IR e a confusion matrix nao é so o que influencia  as metricas de fairness  (existem outras medidas de complexidade do dataset) --->idealmentente escolho uma metrica que quero otimizar e nao escolher a metrica com base no dataset
+---> IR pode estar inveasado e pode dar uma falsa sensação
+
+possivel argumento para nao olhar para todos os atributos é que é escolha de design-> dependendo da aplicação que queremos dar temos de decidir o que é o atributo sensivel (não é possivel ir a tudo) -> outra coisa é que devemos escolher as metricas de fairness (saber o que queremos) porque ao otimizar uma estamos a prejudicar outra-> pode resultar numa combinaçao muito estranha e depois aumentar demasiado a complexidade e nao tornar fair para nenhuma das metricas
+
+future work -> uma abordagem so bayes ou so redes verifica-se? estamos à espera que uns tenham melhor footprint nas metricas do que outras
+
+_________________________
+TODO: GERAR A TABELA COM AS SIMULAÇÕES QUE FIZ 
+tentar por o valor maximo em vez dos 1000 ( no limite deixar os que sao muito altos para tras)
+
+apenas 1 seed de classificador 
+1º -> por dataset, por classificador,por metrica, por cada um dos valores de IR |GR, tirar média e desvio padrao ( em vez de ter aqueles graficos ter os valores propriamente ditos) 
+
+2º a abordagem dos boxplots seria fazer por intervalos low, medium e High juntando os classificadores (para cada dataset individual) -> essa definição é um ponto de ataque (tentar ver se existe alguma coisa publicada para basear) -> posso brincar um pouco com os thresholds e ver qual a variancia (deixar modulado para ser so variar facilmente)
+
+3º metricas de complexidade vs datasets que estou a utilizar (média por cada metrica de complexidade por cada um dos folds que estou a fazer) -> por exemplo na divisao de treino e teste tenho de tirar medidas de complexidade. 50 partiçoes 50 valores de cada medida de complexidade (e depois tenho varias medidas que posso tirar) quero fazer a média e o desvio para depois as 50 -> a usar a biblioteca pegando no X_test e calcular as medidas (so com o teste) e depois tirar tambem uma vez para o dataset original 
+
+todas excepto multiresolution
+https://github.com/DiogoApostolo/pycol 
+
+deste as de complexidade que nao estao no pycol
+https://pymfe.readthedocs.io/en/latest/auto_pages/meta_features_description.html

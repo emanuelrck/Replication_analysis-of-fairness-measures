@@ -255,8 +255,6 @@ def plot_line(fairness: pd.DataFrame, metric: str, ratio_type: str, fill='std', 
 
     # workaround to keep the x tick labels readable
     ratios_ticks = [
-        '0.01',
-        '  \n0.02',
         '0.05',
         '0.1',
         '0.2',
@@ -268,8 +266,6 @@ def plot_line(fairness: pd.DataFrame, metric: str, ratio_type: str, fill='std', 
         '0.8',
         '0.9',
         '0.95',
-        '0.98\n  ',
-        '0.99',
     ]
 
     ax.set_xticks(ratios, ratios_ticks, rotation=90)
@@ -416,8 +412,6 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
                 )
 
         ratios_ticks = [
-            '0.01\n',
-            '0.02',
             '0.05',
             '0.1',
             '0.2',
@@ -429,8 +423,6 @@ def plot_line_all(fairness: pd.DataFrame, metrics: list[str], ratio_type: str, f
             '0.8',
             '0.9',
             '0.95',
-            '0.98',
-            '\n0.99',
         ]
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
@@ -530,7 +522,7 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
 
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
-        axs[i // 2, i % 2].set_xticks(complexity_values_int, complexity_values, rotation=90)
+        axs[i // 2, i % 2].set_xticks(complexity_values_int, copy_complexity_values_str, rotation=90)
         axs[i // 2, i % 2].set_xlim(min(complexity_values_int), max(complexity_values_int))
         if i // 2 == 2:
             axs[i // 2, i % 2].set_xlabel("variar_"+ratio_type+"_metrica_"+ name_complexity_metric)
@@ -908,7 +900,7 @@ if __name__ == '__main__':
             
 
             #--------------------------------------------------------------aqui define quais as combinaçoes de porporçoes de datasets (na variavel ratios) mas ter cuidado com os pontos dos plots
-            rs = [0.01, 0.02, 0.05] + [round(x, 2) for x in np.arange(0.1, 1.0, 0.1)] + [0.95, 0.98, 0.99]
+            rs = [0.05] + [round(x, 2) for x in np.arange(0.1, 1.0, 0.1)] + [0.95]
             ratios = [[0.5, ir] for ir in rs] + [[gr, 0.5] for gr in rs]
         
             #--------------------------------------

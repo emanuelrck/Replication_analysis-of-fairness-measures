@@ -1,0 +1,36 @@
+clusters estao a ser feitos apenas com os atributos sensiveis (nem leva target ao criar a divisao dos clusters nem atributos nao sensiveis)
+
+problemas da silhouete é que os clusters sao feitos apenas com os atributos sensiveis e estes so tem um numero limitado de valores (normalmente 2) entao 4 clusters conseguem distinguir todos os valores e quanto maior o numero de cluster melhor a separaçao e maior o silhoute score
+
+census muito grande ficou por fazer->200 000 linhas
+
+fire nao fiz so tem 118 linhas e studentmat que so tem 395	
+
+maioria dos datasets por ter poucos dados so foi feito 1 cluster caso contrario os dados ficam demasiado divididos para obter as medidas de fairnes (ou por ter apenas 1 variavel sensivel)´
+
+nos casos em que os existem poucos dados nao se conseguem tirar grandes conclusoes visto as metricas subirem e descerem (stalog;crime)-> no caso do crime como esta muito desbalanceado para a classe negativa os metodos de balaceamento acabam por nao ter muito efeito da forma como sao feitos
+
+no compas preditive melhora mas ha umas que pioram que nos outros nao pioravam
+
+credit_card parece portar-se bem
+
+dutch mantem as conclusoes anteriores de predictive rate e negative predictive rate piorarem e outras melhorarem
+-------------------------
+
+[https://dl.acm.org/doi/10.1145/3654659]
+https://dl.acm.org/doi/10.1145/3654659
+https://arxiv.org/pdf/2207.06084.pdf
+https://openreview.net/pdf?id=1ENFE2VJWx
+
+https://www.sciencedirect.com/science/article/abs/pii/S0020025523006448
+se encontrar outros bons enviar (preparar um estado da arte da forma como comunidade cientifica esta a ver as questoes de fairness e imbalance); connected papers -> preparar ideias que ache relevantes para depois avançar 
+encontrar os artigos que parecem relevantes e enviar primeiro antes de começar a analisar aprofundado 
+
+
+tentar preceber nestes casos dos papers se nos clusters usam tudo ou apenas atributos sensiveis
+
+pesquisa geral de imbalance e unfair de como estas areas estao a ser investigadas (estado da arte) para saber como abordar o problema
+
+verificar se estes resultados sao algo geral e que se encontra noutros estudos; se é um problema geral se é um problema que nosso que algo correu mal
+
+verificar algumas correçoes as metricas para inpiraçao 

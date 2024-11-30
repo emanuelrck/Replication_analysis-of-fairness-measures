@@ -24,6 +24,7 @@ from sklearn.tree import DecisionTreeClassifier
 import csv
 from complexity import Complexity
 from utils import Timer
+from scipy.stats import f_oneway
 SEED = 2137
 
 #_mod -> deixou de ser de 0.01 a 0.99 para 0.05 a 0.95
@@ -458,16 +459,19 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
     for i in complexity_values:
         complexity_values_int.append(float(i))
         copy_complexity_values_str.append(i)
+  
     combined = list(zip(complexity_values_int, copy_complexity_values_str, ratios))
     # Ordenando o array combinado pelo primeiro elemento de cada tupla (array1)
     sorted_combined = sorted(combined, key=lambda x: x[0])
     # Descompactando os arrays ordenados
     complexity_values_int, copy_complexity_values_str, ratios = zip(*sorted_combined)
+
+
     # Convertendo de volta para listas (opcional)
     complexity_values_int = list(complexity_values_int)
     copy_complexity_values_str = list(copy_complexity_values_str)
     ratios = list(ratios)
-        
+
     for i, metric in enumerate(metrics):
         axs[i // 2, i % 2].set_ylabel(metric.replace('Difference', ''))
 
@@ -520,7 +524,7 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
 
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
-        axs[i // 2, i % 2].set_xticks(complexity_values_int, complexity_values, rotation=90)
+        axs[i // 2, i % 2].set_xticks(complexity_values_int, copy_complexity_values_str, rotation=90)
         axs[i // 2, i % 2].set_xlim(min(complexity_values_int), max(complexity_values_int))
         if i // 2 == 2:
             axs[i // 2, i % 2].set_xlabel("variar_"+ratio_type+"_metrica_"+ name_complexity_metric)
@@ -679,6 +683,53 @@ def write_complexity_to_file(data):
             writer.writerow(row)
     return
 
+def check(fairness_results_cv):
+    metrics = [
+        'Accuracy Equality Difference',
+        'Statistical Parity Difference',
+        'Equal Opportunity Difference',
+        'Predictive Equality Difference',
+        'Positive Predictive Parity Difference',
+        'Negative Predictive Parity Difference',
+    ]
+    classifiers = ['RandomForest',
+                   'DecisionTree',
+                   'GaussianNB',
+                   'LogisticRegression',
+                   'KNeighbors',
+                   'MLP',
+    ]
+    values = [ 0.2, 0.3,0.4,0.5,0.6,0.7,0.8]
+    values_for_anova = [] 
+    #primeiro indice indicaria o valor; 2 o classificador depois usava multiway anova 
+    for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+        for m in metrics:
+            for v in values:
+                aux = fairness_results_cv[
+                        (fairness_results_cv['metric'] == m) &
+                        (fairness_results_cv[ratio_type] == v) &
+                        (fairness_results_cv[other_ratio] == 0.5) & 
+                        fairness_results_cv['value'].notna()
+                    ]['value']
+                if len(aux) > 0:
+                   values_for_anova.append(aux)
+            perform_anova(m, *values_for_anova)
+    return
+
+
+def perform_anova(metric, *subsets):
+    # Os valores dos subsets serão passados diretamente para f_oneway
+    values = [subset.values for subset in subsets]
+    
+    # Realizar ANOVA
+    f_stat, p_value = f_oneway(*values)
+    print(f"Métrica: {metric}")
+    print(f"F-statistic: {f_stat}, p-value: {p_value}")
+    if p_value < 0.05:
+        print("Diferença significativa encontrada.")
+    else:
+        print("Nenhuma diferença significativa encontrada.")
+    print("-" * 40)
 
 if __name__ == '__main__':
     
@@ -936,7 +987,7 @@ if __name__ == '__main__':
                 plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], ir_metric_values,"ir",)
                     
                 plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], gr_metric_values,"gr")
-                
+           
             #----------------------------------
             # # pickle the results
 
@@ -944,11 +995,11 @@ if __name__ == '__main__':
                 pickle.dump(fairness_results_cv, f)
 
             with open(os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl'), 'wb') as f:
-                pickle.dump(results_cv, f)
+                pickle.dump(results_cv, f) 
             #------------------
 
-            #-------------------usar os ficheiros pickle em vez de sempre calculos-------------------
             #fairness_file = os.path.join(DIRETORIA_EXP, 'fairness_results_cv.pkl')
+            #-------------------usar os ficheiros pickle em vez de sempre calculos-------------------
             #clf_file = os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl')
     #
             # #Carregar os dados dos arquivos
@@ -958,7 +1009,8 @@ if __name__ == '__main__':
             #    results_cv = pickle.load(f)
         
             
-            
+            #check(fairness_results_cv)
+            #exit(0)
 
             #plot the absolute value of fairness metrics
             for fill in ('std', 'err'):
@@ -1067,6 +1119,8 @@ if __name__ == '__main__':
 
             #----------------------------------
             # results to csv
+
+            #TODO SE QUISER TIRAR LOGO OS EXCEL IRIA COLOCAR AQUI A FORMA DE METER A COMPLEXIDADE ASSOCIADA AOS VALORES 
 
             clfs = results_cv['clf'].unique()
             scores = results_cv['metric'].unique()

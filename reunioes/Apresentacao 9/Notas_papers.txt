@@ -1,0 +1,147 @@
+1-s2.0-S0020025523006448-main -> Paper focado na forma como os dados sinteticos sao gerados
+
+ groupfairness ->group fairness based on sensitive attributes (e.g., sex or race).
+
+ usar oversampling para corrigir desbalancemaneto em groupos de classes minoritarias-> grupos baseados nos atributos sensiveis 
+
+no estudo so vao usar group fairness
+
+eles fazem os grupos ou so por 1 atributo ou por combinaçoes de atributos
+ usam metricas de fairness->
+statistical parity -> prob de prever positivo em tudo - prob de prever positivo num grupo
+equal opportunity -> prob de true positives em tudo - prob de true positives num grupo, 
+ and equalized odds 
+
+nos clusters eles usam tanto os grupos como o target (NOS SO USAMOS OS GRUPOS)
+
+Usam KNN
+pag 5 -> forma de gerar dados sinteticos
+
+DATASETS semelhantes: adult,German,Compas
+
+usam Support Vector Machine  (SVM) classifier e Logistic Regression (LR) classifier -> nos usamos LR
+
+___________________________________________________
+
+561_fairness_aware_class_imbalance -> nao percebi bem o paper
+medidas de fairness 
+Group sufficiency (GS)
+Demografic parity ->usamos
+equalizaed odds ->usamos
+
+nos atributos sensiveis em vez de considerarem binario consideraram todas as classes
+apenas têm 1 sensivel por dataset
+
+_________________________
+
+2207.06084 -> propoe algoritmo de oversampling "fair oversampling" e discute o imbalanced e fairness
+estado da arte bastante completo com varias abordagens 
+
+metricas de fairness usadas ->average odds, equalized odds and the diference in true negative rates.
+Demographic parity, or the proportion of positive decisions
+
+pre processamento com FairOversampling
+
+nova metrica que mistura fairness e imbalance "fair utility"
+
+divide sensiveis de nao sensiveis e dentro dos sensiveis devide em priveligiados e nao priveligiados
+focado em group fairness-> 
+
+data-level approach -> over sampling e undersampling (o que temos feito) 
+
+Fair oversampling->determina as classes maioritaria e minuritaria Y; subdivede atributos protegidos em 2 categorias priveligiados e nao priveligiados depois faz random oversampling e nearest neighbor metrics com os mecanismos de SMOTE modificados-> faz com que exemplos da class maioritaria sejam iguais ao da minoritaria (semelhante ao que fazemos mas o algoritmo de gerar dados sinteticos é diferente)
+Determina o grupo protegido que precisa de menos amostra para ter equivalencia e seleciona os KNN e repete para o proximo atributo protegido mas em vez de usar knn gera a partir da classe minoritaria. 
+
+"example, in a dataset D related
+to the extension of credit, the majority class (Dmaj) could be people that receive
+credit, and the minority class (Dmin) could be those that do not receive credit.
+The protected feature xp could be gender, where males are considered privileged
+xpr and females are unprivileged xup. This categorization results in four subgroups:
+privileged majority (Dprmaj), unprivileged majority (Dupmaj), privileged
+minority (Dprmin) and unprivileged minority (Dupmin)."
+
+nao balanceai os ratios dos atributos protegidos; balanceia o numero de classes 
+
+depois a analise é se este mecanismo melhora a fairness e robustes de para classificadores populares
+
+usaram os dataset german, adult e compas (estamos a usar estes 3) mas eles so consideram o sexo como atributo protegido
+
+nos resultados em algumas metricas de fairness o valor depois de usar FOS piorou mas dizem que não é relevante porque permite melhorar a accuracy
+
+
+_______________________________________________
+
+3654659 estuda propriedades das medidas de fairness e fornecer um guia para comparar as varias medidas de fairness
+
+diferentes tipos de datasates devem usar diferentes medidas de fairness
+
+no estado da arte referem que estudos de fairness em machine learning nao tem explicitamente em consideraçao o desbalanceamento das classes e grupos protegidos
+
+focado na fariness de grupo (tratamento igual entre varios grupos identificados pelos atrivutos protegidos
+
+apenas consideram 1 atributo protegido para simplicidade e divide o dataset num grupo protegido e num nao protegido
+
+fizeram matriz de confusao para cada grupo
+
+usam imbalance ratio e group ratio para quantificar o desbalancemaento de classe e de grupo
+
+usaram 6 metricas que cobrem todas as categorias de nao descriminaçao 
+para independencia Accuracy Equality e Statistical Parity
+para separação Equal Opportunity e Predictive Equality
+para suficiencia Positive Predictive Parity e Negative Predictive Parity
+
+depois para comparar os valores entre a classe protegida e a nao protegida redefiniram as metricas para ser a subtrair 
+
+a experiencia consiste em tirar os valores das medidas de fairness para diferentes GR e IR-> variar o desbalanceamento das classes e avaliar o comportamento da fairness
+
+usam pmfs (probability mass functions-> prob de uma variavel aleatoria discreta ser precisamente igual a um valor especifico
+
+nao usam um classificador mas assumem que todas as matrizes de confusao sao igualmente provaveis ( no maximo o n usado é de 56 por causa da quantidade de possibilidades)
+
+classificadores com elevada accuracy tendem a ser menos fair; quando a accuracy anda por volta de 0.5 existe maior quantidade de matrizes de confusao proximas do fair (fairness-accuracy trade off)
+
+pagina 13 tem tabela de resumo 
+medidas que sao immune to IR changes nao sao esperadas mudar com diferentes racios de desbalanceamento; imunity to GR -> o mesmo para desbalancemaneto de grupos
+
+
+accuracy equality -> nossa accuracy parity
+statistical parity-> porporcional parity
+Equal Opportunity-> equal odds
+Predictive Equality-> false positive rate
+Positive Predictive Parity-> predicted rate parity (X)
+Negative Predictive Parity->negative predicted value (x)
+
+se vir nas tabelas os que temos problemas nao cumprem nenhum dos valores
+
+apenas statistical parity e accuracy parity oferecem consistencia as outras podem dizer que é fair dependendo do ratio de desbalanceamento
+
+
+numa segunda parte usaram o dataset adult e selecionaram apenas o sexo como atributo protegido
+com este dataset querem ver o comportamento da fariness fazendo diferentes subsets com diferentes graus de balanceamento
+
+usaram os algoritmos k-Nearest Neighbors (k-NN), Naive Bayes, Decision Tree,
+Logistic Regression, Random Forest, a Multilayer Perceptron with a hidden layer of 100 neurons (MLP).-> (nós usamos logistic regression as a base classifier. -> https://kozodoi.me/r/fairness/packages/2020/05/01/fairness-tutorial.html#Predictive-rate-parity)
+
+na figura 9 acho que explica pq quando fica balanceado os resultados sao piores em algumas metricas e na discuçao a laranja
+-----------------
+destes 4 papers penso que nenhum considera mais do que 1 dos atributos protegidos em simultaneo
+
+------
+cluster individual com atributos sensiveis e tirava os dados
+e depois com todos e tirava os dados 
+
+pensar se juntar target com sensivel para cluster 
+
+depois comparar os resultados de varios classificadores do estado da arte 
+
+usam medidas de fairness diferentes das que usamos 
+
+------------------
+Para esta semana !!!!
+pensar em ideias para experimentar e completar o setup experimental que tenho estado a fazer -> como o que fiz pode completar o estado da arte
+
+li estes artigos-> o objetivo deste era semelhante mas fazemos de forma diferente mas o objetivo é exatamente o mesmo-> validar a ideia e o setup experimental 
+
+usar o connected papers para encontrar titulos semelhantes. 
+
+abstacte intro e resultados -> so se interessar é que passa a metodologia se interessar. 

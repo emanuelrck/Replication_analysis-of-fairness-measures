@@ -1,0 +1,10 @@
+->correr para os datasets maiores
+
+-> olhando para as metricas definidas pensar em formas de dentros destas fmetricas definidas quais as metricas que podemos definir para caracterizar as metricas que eles definiram sem ser a a olhometro: ex-> ter uma regra que diz se racio variar menos de 10% consideramos certo-> menos opiniao e mais analitico (colocar um limite)-> tentar quantificar as metricas defenindo regras 
+--->defenir uma escala de valores|metrica quantitativa para medir de forma objetiva o conceito
+------------------------------------------
+->a ideia dos graficos de complexidade é que nao seria o ir que iria varia a fairness diretamente mas poderia ser influenciado por outras metricas de complexidade -> não é o IR em si que altera os resultados mas a complexidade dos subdatasets em si
+
+-> comparar os graficos da complexidade com os originais de IR e GR porque os picos tem de existir em ambos da mesma forma ( algo ficou estranho)
+
+em vez de f1 usar R_value e OBB e o BorderLine e o T1

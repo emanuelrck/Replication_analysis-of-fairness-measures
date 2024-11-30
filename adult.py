@@ -23,7 +23,8 @@ from sklearn.preprocessing import LabelEncoder, OrdinalEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 import csv
 from complexity import Complexity
-
+from scipy.stats import f_oneway
+from scipy import stats
 from utils import Timer
 SEED = 1000
 
@@ -532,7 +533,7 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
 
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
-        axs[i // 2, i % 2].set_xticks(complexity_values_int, complexity_values, rotation=90)
+        axs[i // 2, i % 2].set_xticks(complexity_values_int, copy_complexity_values_str, rotation=90)
         axs[i // 2, i % 2].set_xlim(min(complexity_values_int), max(complexity_values_int))
         if i // 2 == 2:
             axs[i // 2, i % 2].set_xlabel("variar_"+ratio_type+"_metrica_"+ name_complexity_metric)
@@ -692,6 +693,115 @@ def write_complexity_to_file(data):
             writer.writerow(row)
     return
 
+def check_imutabilidade(fairness_results_cv):
+    metrics = [
+        'Accuracy Equality Difference',
+        'Statistical Parity Difference',
+        'Equal Opportunity Difference',
+        'Predictive Equality Difference',
+        'Positive Predictive Parity Difference',
+        'Negative Predictive Parity Difference',
+    ]
+    classifiers = ['RandomForest',
+                   'DecisionTree',
+                   'GaussianNB',
+                   'LogisticRegression',
+                   'KNeighbors',
+                   'MLP',
+    ]
+    #TODO: ESTES VALORES TEM DE SER TODOS
+    values = [0.01,0.02,0.05,0.1,0.2, 0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.98,0.99]
+    
+    values_for_anova = [] 
+    values_for_anova_classifier = [[],[],[],[],[],[]]
+    #primeiro indice indicaria o valor; 2 o classificador depois usava multiway anova 
+    clean_files()
+    for ratio_type, other_ratio in [['ir', 'gr'], ['gr', 'ir']]:
+        for m in metrics:
+            for v in values:
+                for c in range(len(classifiers)):
+                    aux = fairness_results_cv[
+                            (fairness_results_cv['metric'] == m) &
+                            (fairness_results_cv[ratio_type] == v) &
+                            (fairness_results_cv['clf'] == classifiers[c]) &
+                            (fairness_results_cv[other_ratio] == 0.5) & 
+                            fairness_results_cv['value'].notna()
+                        ]['value']
+                    #print(aux.mean())
+                    #print(aux.std())
+                    #print(len(aux))
+                    #print()
+                    if len(aux) > 0:
+                        values_for_anova_classifier[c].append(aux)
+            for c in range(len(classifiers)):
+                #print(classifiers[c])
+                
+                #perform_anova(m, *values_for_anova_classifier[c])
+                #simetria_eixoY(m, classifiers[c],*values_for_anova_classifier[c])
+                confidence_interval(m, classifiers[c],*values_for_anova_classifier[c])
+    return
+def clean_files():
+     with open(os.path.join(DIRETORIA_EXP, f'simetria.csv'), 'w') as f:
+        f.write("Classificador;metrica fairness; media dos valores;erro cumulativo; erro relativo (%)\n")
+def simetria_eixoY(metric, classifier,*subsets):
+    last_index = len(subsets) - 1
+    cumulative_err = 0
+    for i in range (len(subsets)):
+        cumulative_err += abs(subsets[i].mean() - subsets[last_index - i].mean())
+        if i >= last_index - i:
+            break
+    #print(cumulative_err)
+    concatenated_subset = pd.concat(subsets)
+    #print(concatenated_subset.mean())
+    with open(os.path.join(DIRETORIA_EXP, f'simetria.csv'), 'a+') as f:
+        f.write(classifier+ ";"+metric +";"+str(concatenated_subset.mean()) +
+        ";"+str(cumulative_err) +
+        ";"+ str(cumulative_err/concatenated_subset.mean() * 100)+"%\n"
+        )
+    
+
+    
+def perform_anova(metric, *subsets):
+    # Os valores dos subsets serão passados diretamente para f_oneway
+    values = [subset.values for subset in subsets]
+    
+    # Realizar ANOVA
+    f_stat, p_value = f_oneway(*values)
+    print(f"Métrica: {metric}")
+    print(f"F-statistic: {f_stat}, p-value: {p_value}")
+    if p_value < 0.05:
+        print("Diferença significativa encontrada.")
+    else:
+        print("Nenhuma diferença significativa encontrada.")
+    print("-" * 40)
+
+def confidence_interval(metric, classifier,*subsets):
+    results = []
+    
+    # Concatenar todos os subsets em uma única série
+    concatenated_subset = pd.concat(subsets)
+    
+    # Calcular valores estatísticos
+    values = concatenated_subset.values
+    n = len(values)
+    mean = np.mean(values)
+    sem = stats.sem(values)  # Erro padrão da média
+    confidence = 0.95
+    h = sem * stats.t.ppf((1 + confidence) / 2., n-1)  # Valor crítico da t de Student
+
+    lower_bound = mean - h
+    upper_bound = mean + h
+    
+    results.append(
+        classifier+";"+str(metric)+
+        ";Média:;"+str(mean)+
+        ";Intervalo de Confiança (95%);" f"[{lower_bound}, {upper_bound}]"
+    )
+    results.append("")
+    with open(os.path.join(DIRETORIA_EXP, f'intervaloConfianca.csv'), 'a+') as f:
+        f.write('\n'.join(results))
+
+   
 
 if __name__ == '__main__':
     seeds_split_data = [1120, 2928, 2379, 2050, 1962, 230, 825, 1781, 476, 1243, 1187, 1105, 2391, 2779, 1337, 2210, 1964, 2362, 376, 1437, 723, 485, 2033, 2815, 839, 1864, 1618, 546, 2938, 2796, 1028, 2388, 653, 264, 2489, 2531, 1778, 28, 2929, 1874, 1614, 313, 177, 1669, 2435, 1331, 2700, 1495, 140, 457]
@@ -704,7 +814,7 @@ if __name__ == '__main__':
     fourthBound_boxplot = 0.8
     complexity_metrics = [6,10,19,24]
 
-    values_sens = [['White','notwhite'],['Male', 'Female']]
+    values_sens = [['White','notwhite   '],['Male', 'Female']]
     names_sens =['race','sex']
     for i in seeds:
         SEED = i
@@ -713,7 +823,7 @@ if __name__ == '__main__':
             SENSIVEL_NAME = names_sens[j]
             SAMPLE_SIZE = sizes_samples[j]
             #DIRETORIA_EXP = "adult_seed"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
-            DIRETORIA_EXP = "adult_"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
+            DIRETORIA_EXP = "e"+str(SEED)+"_"+str(SENSIVEL_NAME)+"_size"+str(SAMPLE_SIZE)
 
             warnings.filterwarnings('ignore')
             plt.style.use('default')
@@ -855,17 +965,19 @@ if __name__ == '__main__':
 
             timer.start()
 
-            #X_all, y_all = preprocess(dataset)
+            X_all, y_all = preprocess(dataset)
+
             #complexity_values.append(measures_complexity( X_all, y_all,1,1))
             #write_complexity_to_file(complexity_values)
-            #exit(0)
+            
+            
             for gr, ir in ratios:
                 print(f'GR: {gr}, IR: {ir}')
                 swap_gr, swap_ir = False, False
                 c = 0
                 for split_seed in seeds_split_data:
-                    df = split_data(dataset, SAMPLE_SIZE, gr, ir,split_seed)
-                    X_all, y_all = preprocess(df)
+                    #df = split_data(dataset, SAMPLE_SIZE, gr, ir,split_seed)
+                    #X_all, y_all = preprocess(df)
                     timer.checkpoint(f"gr={gr} ir={ir} data preprocessing")
 
                     for i, (traini, testi) in enumerate(holdout.split(X_all)):
@@ -894,7 +1006,8 @@ if __name__ == '__main__':
                             for metric, value in f.items():
                                 fairness_results.append([gr, ir, clf.__name__.replace('Classifier', ''), metric, value])
                             timer.checkpoint(f"gr={gr} ir={ir} classification with {clf.__name__} rep. {i}")
-
+                    print(fairness_results)
+                    exit(0)
             results_cv = pd.DataFrame(results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
             fairness_results_cv = pd.DataFrame(fairness_results, columns=['gr', 'ir', 'clf', 'metric', 'value'])
             write_complexity_to_file(complexity_values)
@@ -925,7 +1038,7 @@ if __name__ == '__main__':
                 plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], ir_metric_values,"ir",)
                     
                 plot_complexityMetric(fairness_results_cv, complexity_values[0][complexityMetricIndex], gr_metric_values,"gr")
-                
+               
             #----------------------------------
             # # pickle the results
 
@@ -934,7 +1047,20 @@ if __name__ == '__main__':
 
             with open(os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl'), 'wb') as f:
                 pickle.dump(results_cv, f)
-            #------------------
+            #------------------"""
+            #fairness_file = os.path.join(DIRETORIA_EXP, 'fairness_results_cv.pkl')
+            #clf_file = os.path.join(DIRETORIA_EXP, 'clf_results_cv.pkl')
+    #
+            # #Carregar os dados dos arquivos
+            #with open(fairness_file, 'rb') as f:
+            #    fairness_results_cv = pickle.load(f)
+            #with open(clf_file, 'rb') as f:
+            #    results_cv = pickle.load(f)
+        #
+            #
+            #check_imutabilidade(fairness_results_cv)
+            #exit(0)
+
             #plot the absolute value of fairness metrics
             for fill in ('std', 'err'):
                 subdir = f'line_{fill}'

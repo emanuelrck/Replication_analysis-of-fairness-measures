@@ -1,0 +1,46 @@
+1ºanalisar bem boxplots e tentar fazer a tabela do artigo; se nao for igual tes justificação plausivel
+
+(nos boxplots pode-se tirar os valores das medianas e quartis para ser mais facil analisar os valores)
+
+(talvez em vez de ter 3 tiers nos boxplots ter mais)-> 4 ou 5 
+
+em vez de fazer a complexidade de teste fazer a complexidade do dataset com treino e teste para cada uma das partiçoes e no total
+e ter a ordernação por F1 ou F2 
+
+
+nos graficos ter para cada metrica e o eixo de x seria uma metrica de complexidade em vez de ser os intervalos de GR e IR
+
+
+fazer as experiencias com o dataset todo tirar as medidas de complexidade (igual ao anterior mas dataset todo) 
+ 
+
+segunda dizer como esta a correr simulçação
+
+
+começar um word com as coisas que estou a fazer
+
+---------------------------
+	por executar:
+
+census 
+diabete 
+dutch 
+oulad
+
+
+
+
+
+
+ 
+	executados: 
+
+
+v2
+crime
+stalog
+law
+adult
+bank
+compas
+creditCard 

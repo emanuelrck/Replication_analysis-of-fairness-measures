@@ -1,0 +1,57 @@
+basta deixar seed 2137
+
+No ultimo bloco do main alterar estes 2 for
+
+depois
+for m, metric in enumerate(scores):
+                lines = ['IR, GR; ' + ';'.join(clfs)]
+
+-----------------------------------
+antes:
+for clf in clfs:
+                            l += f'  ,{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
+
+
+depois:
+for clf in clfs:
+                            l += f'  ;{subset[subset["clf"] == clf]["value"].mean():.3f} ({subset[subset["clf"] == clf]["value"].std():.3f})'
+
+--------------------------------
+adicionar a função boxplot e chama-la depois dos pickle.dump com fairness_results_cv
+-----------------------------------
+adicionar a função measures_complexity(X_test,y_test) dentro do ciclo do for traini, testi enumerate holdout
+
+adicionar a func write_complexity_to_file -> escrever quando vai para colocar nos pickles
+e adicionar a lista complexity_values
+
+import csv
+from complexity import Complexity
+
+
+
+________________________________________________
+1º copiar o bloco do ultimo for do main com m,metric
+2º copiar as funções boxplot; mesures_complexity; write_complexity_to_file
+3º import csv
+from complexity import Complexity
+4º
+
+--------------
+TODO: -> tirar para o dataset todo (esta em adult.py so copiar para os outros)
+
+Changes Done To execute:
+crime
+census 
+diabete 
+dutch 
+oulad 
+
+
+
+done:
+adult
+compas
+bank
+stalog
+law
+creditCard 

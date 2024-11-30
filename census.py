@@ -528,7 +528,7 @@ def plot_complexityMetric(fairness, name_complexity_metric, complexity_values,ra
 
 
         axs[i // 2, i % 2].spines[['top', 'right']].set_visible(False)
-        axs[i // 2, i % 2].set_xticks(complexity_values_int, complexity_values, rotation=90)
+        axs[i // 2, i % 2].set_xticks(complexity_values_int, copy_complexity_values_str, rotation=90)
         axs[i // 2, i % 2].set_xlim(min(complexity_values_int), max(complexity_values_int))
         if i // 2 == 2:
             axs[i // 2, i % 2].set_xlabel("variar_"+ratio_type+"_metrica_"+ name_complexity_metric)
@@ -760,12 +760,12 @@ if __name__ == '__main__':
     #seeds = [1000, 2000, 2137]
     seeds = [2137]
     sizes_samples = [7000,5000,2000] #max possiveis
-    #sizes_samples = [1000,1000]
-    #values_sens = [['adult','notAdult'],[' Male',' Female'],['White','notWhite']]
-    #names_sens =['age','sex','race']
+    #sizes_samples = [7000,2000]
+    values_sens = [['adult','notAdult'],[' Male',' Female'],['White','notWhite']]
+    names_sens =['age','sex','race']
 
-    values_sens = [[' Male',' Female'],['White','notWhite']]
-    names_sens =['sex','race']
+    #values_sens = [['adult','notAdult'],['White','notWhite']]
+    #names_sens =['sex','race']
     firstBound_boxplot = 0.2
     secondBound_boxplot = 0.4
     thirdBound_boxplot = 0.6
